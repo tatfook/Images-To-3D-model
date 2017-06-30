@@ -1,0 +1,11 @@
+.vs
+npl_packages
+*.db
+*.opendb
+*.sdf
+*.suo
+*.log
+*.txt
+*.user
+Debug
+Release
