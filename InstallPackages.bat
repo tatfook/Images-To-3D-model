@@ -5,6 +5,7 @@ pushd "npl_packages"
 
 CALL :InstallPackage main
 CALL :InstallPackage paracraft
+
 popd
 
 EXIT /B %ERRORLEVEL%
@@ -13,8 +14,7 @@ rem install function here
 :InstallPackage
 if exist "%1\README.md" (
     pushd %1
-    git reset --hard
-	git pull
+    git pull
     popd
 ) else (
     rmdir /s /q "%CD%\%1"

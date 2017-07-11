@@ -2,10 +2,9 @@
 npl_packages
 *.db
 *.opendb
+*.user
 *.sdf
 *.suo
 *.log
 *.txt
-*.user
 Debug
-Release
