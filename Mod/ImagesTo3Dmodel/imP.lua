@@ -70,5 +70,3 @@ function CreatTXT(array)
 	end
 	file: close();
 end
-array=imread2Grey(filename);
-CreatTXT(array);
