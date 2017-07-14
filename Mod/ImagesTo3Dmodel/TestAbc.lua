@@ -7,20 +7,21 @@ use the lib:
 ------------------------------------------------------------
 NPL.load("(gl)Mod/ImagesTo3Dmodel/TestAbc.lua");
 local TestAbc = commonlib.gettable("Mod.ImagesTo3Dmodel.TestAbc");
-TestAbc.Test("Images");
+
 ------------------------------------------------------------
 ]]
-local TestAbc = commonlib.gettable("Mod.ImagesTo3Dmodel.TestAbc");
+--[[local TestAbc = commonlib.gettable("Mod.ImagesTo3Dmodel.TestAbc");
 function TestAbc.Test(p)
     TestAbc.test_reading_image_file();
-    commonlib.echo("TestAbc.Test");
+    commonlib.echo("TestAbc.D:\University\SOC2017\LuaCode\LenaGrey.jpgTest");
     commonlib.echo(p);
     return {p};
-end
-function TestAbc.test_reading_image_file()
+end]]
+function TestAbc()
+
 	-- reading binary image file
 	-- png, jpg format are supported. 
-	local filename = "Image/java.png";
+	local filename = "Mod/ImagesTo3Dmodel/a.jpg";
 	local file = ParaIO.open(filename, "image");
 	if(file:IsValid()) then
 		local ver = file:ReadInt();
@@ -36,6 +37,7 @@ function TestAbc.test_reading_image_file()
 				echo({x, y, rgb=pixel})
 			end
 		end
-		file:close();
+
 	end
 end
+TestAbc()
