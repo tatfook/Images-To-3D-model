@@ -64,7 +64,9 @@ function CreatTXT(array,filename)
 end
 
 --echo({ArrayMax(array),ArrayMin(array)});
-g=GaussianF(array,5,5);
-CreatTXT(g,"D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/lenaO.txt");
-F=DoG(array,1,5);
-CreatTXT(F,"D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/lena.txt");
+--g=GaussianF(array,5,5);
+--CreatTXT(g,"D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/lenaO.txt");
+--F=DoG(array,1,5);
+--CreatTXT(F,"D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/lena.txt");
+R=HarrisCD(array);
+CreatTXT(R,"D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/harris.txt");

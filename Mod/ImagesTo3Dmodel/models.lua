@@ -46,7 +46,6 @@ function DotProduct(array1, array2)
 	for i=1, h do
 		for j=1, w do
 			array[i][j]=array1[i][j]*array2[i][j];
-			--print(i,j,array[i][j])
 		end
 	end
 	return array;
@@ -214,12 +213,10 @@ function GetGaussian(sig)
 	sum=ArraySum(g)
 	g=ArrayMutl(g,1/sum);
 	return g;
-
 end
 --a=GetGaussian(5);
 -- ArrayShow(a);
 -- print(ArraySum(a))
-
 
 function GaussianF(array,sig)
 	-- Gaussian Filter
@@ -301,5 +298,120 @@ function DoG(array,sig,n)
 	return F;
 end
 
+function meshgrid(a,b,mode)
+	-- Generate a meshgrid. 
+	-- Horizontal:mode=0, vertical: mode=1
+	if (mode~=0 and mode~=1) then
+		mode=0;
+	end
+	local d=math.abs(a-b)+1;
+	local array=zeros(d,d);
+	if mode==0 then
+		for i=1, d do
+			for j=1, d do
+				array[i][j]=i;
+			end
+		end
+	else
+		for i=1, d do
+			for j=1, d do
+				array[i][j]=j;
+			end
+		end
+	end
+	array=ArrayAdd(array,a-1);
+	return array;
+end
+-- a=meshgrid(-1,6,1);
+-- ArrayShow(a)
 
+function conv2(A,B)
+	-- Computer the convolation of 2D array.
+	-- Where A is origanal array, B is the kenel.
+	local h=table.getn(A);
+	local w=table.getn(A[1]);
+	local wsize=table.getn(B);
+	local d=math.floor(wsize/2);
+	local u=math.ceil(wsize/2);
+	local N=zeros(h,w);
+	local M=zeros(wsize,wsize);
+	for i=1+d, h-d do
+		for j=1+d, w-d do
+			for p=1, wsize do
+				for q=1,wsize do
+					M[p][q]=A[i+p-u][j+q-u];
+				end
+			end
+			N[i][j]=ArraySum(DotProduct(M,B));
+		end
+	end
+	return N;
+end
+-- C={{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5}};
+-- B={{1,2,3},{4,5,6},{7,8,9}};
+-- a=conv2(C,B);
+-- ArrayShow(a);
+
+
+function Det2(array)
+	-- Comput 2 Dimension matrix determinant.
+	local D=array[1][1]*array[2][2]-array[1][2]*array[2][1];
+	return D;
+end
+
+function Trace2(array)
+	-- Comput 2 Dimension matrix trace.
+	local T=array[1][1]+array[2][2];
+	return T;
+end
+
+function HarrisCD(array)
+	-- Herris Corner Detector
+	local sig=1;
+	local wsize=7;
+	local h=table.getn(array);
+	local w=table.getn(array[1]);
+	local xx=meshgrid(-3,3,1);
+	local yy=meshgrid(-3,3,0);
+	local M=ArrayAddArray(DotProduct(xx,xx),DotProduct(yy,yy));
+	local Gxy=zeros(wsize,wsize);
+	for i=1, wsize do
+		for j=1, wsize do
+			Gxy[i][j]=math.exp(-(M[i][j]/2/sig^2));
+		end
+	end
+	local Gx=DotProduct(xx,Gxy);
+	local Gy=DotProduct(yy,Gxy);
+	local Ix=conv2(array,Gx);
+	local Iy=conv2(array,Gy);
+	local Ix2=DotProduct(Ix,Ix);
+	local Iy2=DotProduct(Iy,Iy);
+	local Ixy=DotProduct(Ix,Iy);
+	Ix2=GaussianF(Ix2,1);
+	Iy2=GaussianF(Iy2,1);
+	Ixy=GaussianF(Ixy,1);
+	local R=zeros(h,w);
+	local Rmax=0;
+	local M=zeros(2,2);
+	for i=1, h do
+		for j=1, w do
+			M={{Ix2[i][j],Ixy[i][j]},{Ixy[i][j],Iy2[i][j]}};
+			R[i][j]=Det2(M)-0.04*Trace2(M);
+			if R[i][j]>Rmax then
+				Rmax=R[i][j];
+			end
+		end
+	end
+	-- local count=0;
+	local result=zeros(h,w);
+	for i=1, h do
+		for j=1, w do
+			if R[i][j]>0.01*Rmax then
+				result[i][j]=1;
+				-- count=count+1;
+			end
+		end
+	end
+	return result;
+end
 
