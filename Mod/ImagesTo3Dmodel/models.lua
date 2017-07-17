@@ -8,8 +8,92 @@ use the lib:
 NPL.load("(gl)Mod/ImagesTo3Dmodel/models.lua");
 ------------------------------------------------------------
 ]]
-function zeros(height,width)
-	-- Creat the zeros matrix.
+
+--  refactor
+
+local image_processing = commonlib.gettable("commonlib.image_processing")
+
+
+-- refactoring...
+---------------------------------------------------------------------
+--[[-- file:  MatrixN, tensor
+
+local tensor = commonlib.gettable("commonlib.image_processing.tensor");
+
+local t1 = tensor:new():zeros(5, 5);
+local t2 = tensor:new():zeros();
+local t3 = t1:dot(t2);
+local t4 = tensor.dot(t1, t2);
+]]
+
+local ipairs = ipairs;
+local math_ceil = math.ceil; -- _G["math"]["ceil"];
+
+local tensor = commonlib.inherit(nil, commonlib.gettable("commonlib.image_processing.tensor"));
+
+function tensor:ctor()
+end
+
+function tensor:zeros(height,width)
+	height = height or 4;
+	width = width or 4;
+	for h=1, height do
+		self[h]={};
+		for w=1, width do
+			self[h][w]=0;
+		end
+	end
+	return self;	
+end
+
+-- static scoping,   C/C++ dynamic soping for faster indexing of functions
+local zeros = tensor.zeros;
+
+function tensor:SaveAsTxt(filename)
+	-- Creat the txt file of the array.
+	local file = ParaIO.open(filename,"w");
+	if(file) then
+		local h = #(array);
+		if h then
+			for j = 1, h do
+				w = #(self[j]);
+				if w ~= nil then
+					for i = 1, w do
+						file:write(self[j][i], "\0");
+					end
+				end
+				file:write("\n");
+			end
+		end
+		file:close();
+	end
+end
+
+
+
+function tensor.dotInplace(array1, array2)
+end
+
+-- return a new copy of tensor as the dot product of array1 and array2
+-- @param 
+-- @return tensor object
+function tensor.dot(array1, array2)
+	local h=#(array1);
+	local w=#(array1[1]);
+	local array = tensor:new():zeros(h,w);
+	for i=1, h do
+		for j=1, w do
+			array[i][j]=array1[i][j]*array2[i][j];
+		end
+	end
+	return array;
+end
+
+-----------------------------------------------------------------------
+
+-- Create the zeros matrix.
+function image_processing.zeros(height,width)
+	
 	local array={};
 	for h=1, height do
 		array[h]={};
@@ -137,6 +221,7 @@ function Round(n)
 		return(c)
 	end
 end
+
 --print(Round(3.5),Round(3.4),Round(3.6))
 function Array2Max(array)
 	-- Find the Max Value of the 2D Array
@@ -204,7 +289,8 @@ function GetGaussian(sig)
 	local wsize=2*math.ceil(2*sig)+1;
 	local w=math.ceil(wsize/2);
 	--local n=math.pow(10,math.ceil(-math.log10(1/sig^2*math.exp(-(w-1)^2/sig^2))));
-	local g=zeros(wsize,wsize);
+	
+	local g = zeros(wsize,wsize);
 	for i=1, wsize do
 		for j=1, wsize do
 			g[i][j]=(1/sig^2)*math.exp(-((i-w)^2+(j-w)^2)/2/sig^2);
