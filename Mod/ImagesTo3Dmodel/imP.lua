@@ -10,6 +10,12 @@ array=imread2Grey(filename);
 CreatTXT(array);
 ------------------------------------------------------------
 ]]
+
+-- luajit, NPL:  trace just in time compiler. 
+-- random io networking seed os.time , drawing ,  GPU,  .... 
+-- scripting runtime  -- >  C/C++ runtime   ---> user mode ---> kernel mode
+
+
 NPL.load("(gl)Mod/ImagesTo3Dmodel/models.lua");
 local filename = "Mod/ImagesTo3Dmodel/lena.png";
 function imread2Grey(filename)
