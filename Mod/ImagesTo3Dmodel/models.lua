@@ -31,8 +31,6 @@ local math_ceil = math.ceil; -- _G["math"]["ceil"];
 
 local tensor = commonlib.inherit(nil, commonlib.gettable("commonlib.image_processing.tensor"));
 
-function tensor:ctor()
-end
 
 function tensor:zeros(height,width)
 	height = height or 4;
