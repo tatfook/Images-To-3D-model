@@ -13,8 +13,8 @@ imP.CreatTXT(R, "D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_
 ------------------------------------------------------------
 ]]
 
-imP = commonlib.gettable("commonlib.imP");
-tensor = commonlib.inherit(nil, commonlib.gettable("commonlib.imP.tensor"));
+local imP = commonlib.gettable("imP");
+local tensor = commonlib.inherit(nil, commonlib.gettable("imP.tensor"));
 
 
 -- Creat the zeros matrix.
@@ -53,7 +53,7 @@ function imP.imread2Grey(filename)
 		local height = file:ReadInt();
 		-- how many bytes per pixel, usually 1, 3 or 4
 		local bytesPerPixel = file:ReadInt();
-		echo({ver, width = width, height = height, bytesPerPixel = bytesPerPixel})
+		-- echo({ver, width = width, height = height, bytesPerPixel = bytesPerPixel})
 		local pixel = {};
 		local array = zeros(height, width);
 		for j = 1, height do
