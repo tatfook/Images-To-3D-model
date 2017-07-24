@@ -11,14 +11,40 @@ array=imP.imread2Grey(filename);
 R=imP.HarrisCD(array)
 imP.CreatTXT(R, "D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/harris.txt");
 ------------------------------------------------------------
+------------------------------------------------------------
+local zeros = imP.tensor.zeros;
+local zeros3 = imP.tensor.zeros3;
+local Round = imP.Round;
+local imread2Grey = imP.imread2Grey;
+local CreatTXT = imP.CreatTXT;
+local DotProduct = imP.tensor.DotProduct;
+local ArraySum = imP.tensor.ArraySum;
+local ArrayShowE = imP.tensor.ArrayShowE;
+local ArrayShow = imP.tensor.ArrayShow;
+local ArrayShow3 = imP.tensor.ArrayShow3;
+local ArrayMutl = imP.tensor.ArrayMutl;
+local ArrayAdd = imP.tensor.ArrayAdd;
+local ArrayAddArray = imP.tensor.ArrayAddArray;
+local Array2Max = imP.tensor.Array2Max;
+local Array2Min = imP.tensor.Array2Min;
+local Array3Max = imP.tensor.Array3Max;
+local Array3Min = imP.tensor.Array3Min;
+local GetGaussian = imP.GetGaussian;
+local GaussianF = imP.GaussianF;
+local DoG = imP.DoG;
+local meshgrid = imP.tensor.meshgrid;
+local conv2 = imP.tensor.conv2;
+local Det2 = imP.tensor.Det2;
+local Trace2 = imP.tensor.Trace2;
+local HarrisCD = imP.HarrisCD;
+------------------------------------------------------------
 ]]
 
 local imP = commonlib.gettable("imP");
-local tensor = commonlib.inherit(nil, commonlib.gettable("imP.tensor"));
-
+local imP.tensor = commonlib.inherit(nil, commonlib.gettable("imP.imP.tensor"));
 
 -- Creat the zeros matrix.
-function tensor.zeros(height, width)
+function imP.tensor.zeros(height, width)
 	local array = {};
 	for h = 1, height do
 		array[h] = {};
@@ -28,7 +54,25 @@ function tensor.zeros(height, width)
 	end
 	return array;	
 end
-local zeros = tensor.zeros;
+local zeros = imP.tensor.zeros;
+-- a=zeros(2,2);
+
+-- Creat the 3D zeros matrix.
+function imP.tensor.zeros3(h, w, d)
+	local self={};
+	for i = 1, h do
+		self[i] = {};
+		for j = 1, w do
+			self[i][j]={};
+			for k = 1, d do
+				self[i][j][k] = 0;
+			end
+		end
+	end
+	return self;
+end
+local zeros3 = imP.tensor.zeros3;
+
 
 -- Find the nearest integer.
 function imP.Round(n)
@@ -97,7 +141,7 @@ local CreatTXT = imP.CreatTXT;
 
 
 -- Array dot product.
-function tensor.DotProduct(array1, array2)
+function imP.tensor.DotProduct(array1, array2)
 	local h = table.getn(array1);
 	local w = table.getn(array1[1]);
 	local array = zeros(h, w);
@@ -108,11 +152,11 @@ function tensor.DotProduct(array1, array2)
 	end
 	return array;
 end
-local DotProduct = tensor.DotProduct;
+local DotProduct = imP.tensor.DotProduct;
 
 
 -- Here the array is matrix. Sum each elements of the array.
-function tensor.ArraySum(array)
+function imP.tensor.ArraySum(array)
 	local h = table.getn(array);
 	local w = table.getn(array[1]);
 	local sum = 0;
@@ -123,7 +167,7 @@ function tensor.ArraySum(array)
 	end
 	return sum;
 end
-local ArraySum = tensor.ArraySum;
+local ArraySum = imP.tensor.ArraySum;
 -- array1={{1,2,3},{4,5,6},{7,8,9}};
 -- array2={{1,2,3},{4,5,6},{7,8,9}};
 -- array=DotProduct(array1,array2);
@@ -132,18 +176,35 @@ local ArraySum = tensor.ArraySum;
 
 
 -- Show the each element of the array.
-function tensor.ArrayShow(array)
+function imP.tensor.ArrayShowE(array)
 	for i, v in pairs(array) do
 		for j, m in pairs(array[i]) do
 			print(i, j, m);
 		end
 	end
 end
-local ArrayShow = tensor.ArrayShow;
+local ArrayShowE = imP.tensor.ArrayShowE;
 
+-- Show the array.
+function imP.tensor.ArrayShow(array)
+	for i, v in pairs(array) do
+		print(table.concat(v," "));
+	end
+end
+local ArrayShow = imP.tensor.ArrayShow;
+
+-- Show the 3D array.
+function imP.tensor.ArrayShow3(array)
+	for i, v in pairs(array) do
+		for j, w in pairs(v) do
+		    print(table.concat(w," "));
+		end
+	end
+end
+local ArrayShow3 = imP.tensor.ArrayShow3;
 
 -- Array mutliplies number.
-function tensor.ArrayMutl(array, n)
+function imP.tensor.ArrayMutl(array, n)
 	local h = table.getn(array);
 	local w = table.getn(array[1]);
 	local array_o = zeros(h, w)
@@ -154,12 +215,12 @@ function tensor.ArrayMutl(array, n)
 	end
 	return array_o;
 end
-local ArrayMutl = tensor.ArrayMutl;
+local ArrayMutl = imP.tensor.ArrayMutl;
 --ArrayShow(ArrayMutl(array,3))
 
 
 -- Array addes number.
-function tensor.ArrayAdd(array, n)
+function imP.tensor.ArrayAdd(array, n)
 	local h = table.getn(array);
 	local w = table.getn(array[1]);
 	local array_o = zeros(h, w);
@@ -170,12 +231,12 @@ function tensor.ArrayAdd(array, n)
 	end
 	return array_o;
 end
-local ArrayAdd = tensor.ArrayAdd;
+local ArrayAdd = imP.tensor.ArrayAdd;
 --ArrayShow(ArrayAdd(array,3))
 
 
 -- Two having same heigth and width array add
-function tensor.ArrayAddArray(array1, array2)
+function imP.tensor.ArrayAddArray(array1, array2)
 	local h1 = table.getn(array1);
 	local w1 = table.getn(array1[1]);
 	local h2 = table.getn(array2);
@@ -190,13 +251,13 @@ function tensor.ArrayAddArray(array1, array2)
 		return array;
 	end
 end
-local ArrayAddArray = tensor.ArrayAddArray;
+local ArrayAddArray = imP.tensor.ArrayAddArray;
 -- a={{1,2,3},{1,2,3}};
 -- b={{4,5,6},{4,5,6}};
 -- ArrayShow(ArrayAddArray(a,b))
 
 -- Find the Max Value of the 2D Array
-function tensor.Array2Max(array)
+function imP.tensor.Array2Max(array)
 	local max = array[1][1];
 	for i, v in ipairs(array) do
 		for j, m in ipairs(array[i]) do	
@@ -207,11 +268,11 @@ function tensor.Array2Max(array)
 	end 
 	return max;
 end
-local Array2Max = tensor.Array2Max;
+local Array2Max = imP.tensor.Array2Max;
 
 
 -- Find the Min Value of the 2D Array
-function tensor.Array2Min(array)
+function imP.tensor.Array2Min(array)
 	local min = array[1][1];
 	for i, v in ipairs(array) do
 		for j, m in ipairs(array[i]) do
@@ -222,11 +283,11 @@ function tensor.Array2Min(array)
 	end 
 	return min;
 end
-local Array2Min = tensor.Array2Min;
+local Array2Min = imP.tensor.Array2Min;
 
 
 -- Find the Max Value of the 3D Array
-function tensor.Array3Max(array)
+function imP.tensor.Array3Max(array)
 	local max = array[1][1][1];
 	for i, v in ipairs(array) do
 		for j, m in ipairs(array[i]) do
@@ -239,11 +300,11 @@ function tensor.Array3Max(array)
 	end 
 	return max;
 end
-local Array3Max = tensor.Array3Max;
+local Array3Max = imP.tensor.Array3Max;
 
 
 -- Find the Min Value of the 3D Array
-function tensor.Array3Min(array)
+function imP.tensor.Array3Min(array)
 	local min = array[1][1][1];
 	for i, v in ipairs(array) do
 		for j, m in ipairs(array[i]) do
@@ -256,7 +317,7 @@ function tensor.Array3Min(array)
 	end 
 	return min;
 end
-local Array3Min = tensor.Array3Min;
+local Array3Min = imP.tensor.Array3Min;
 -- a={{{1,2,3},{1,2,3},{1,2,3}},{{1,2,3},{1,2,3},{1,2,3}},{{1,2,3},{1,2,3},{1,2,3}}};
 -- print(Array3Min(a),Array3Max(a))
 -- b={{1,2,3},{1,2,3},{1,2,3}};
@@ -372,7 +433,7 @@ local DoG = imP.DoG;
 
 -- Generate a meshgrid. 
 -- Horizontal:mode=0, vertical: mode=1
-function tensor.meshgrid(a, b, mode)
+function imP.tensor.meshgrid(a, b, mode)
 	if(mode~=0 and mode~=1) then
 		mode = 0;
 	end
@@ -394,14 +455,14 @@ function tensor.meshgrid(a, b, mode)
 	array = ArrayAdd(array, a-1);
 	return array;
 end
-local meshgrid = tensor.meshgrid;
+local meshgrid = imP.tensor.meshgrid;
 -- a=meshgrid(-1,6,1);
 -- ArrayShow(a)
 
 
 -- Computer the convolation of 2D array.
 -- Where A is origanal array, B is the kenel.
-function tensor.conv2(A, B)
+function imP.tensor.conv2(A, B)
 	local h = table.getn(A);
 	local w = table.getn(A[1]);
 	local wsize = table.getn(B);
@@ -421,7 +482,7 @@ function tensor.conv2(A, B)
 	end
 	return N;
 end
-local conv2 = tensor.conv2;
+local conv2 = imP.tensor.conv2;
 -- C={{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5}};
 -- B={{1,2,3},{4,5,6},{7,8,9}};
 -- a=conv2(C,B);
@@ -429,19 +490,19 @@ local conv2 = tensor.conv2;
 
 
 -- Comput 2 Dimension matrix determinant.
-function tensor.Det2(array)
+function imP.tensor.Det2(array)
 	local D = array[1][1] * array[2][2]-array[1][2] * array[2][1];
 	return D;
 end
-local Det2 = tensor.Det2;
+local Det2 = imP.tensor.Det2;
 
 
 -- Comput 2 Dimension matrix trace.
-function tensor.Trace2(array)
+function imP.tensor.Trace2(array)
 	local T = array[1][1] + array[2][2];
 	return T;
 end
-local Trace2 = tensor.Trace2;
+local Trace2 = imP.tensor.Trace2;
 
 
 -- Herris Corner Detector
