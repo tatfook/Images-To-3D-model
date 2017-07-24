@@ -8,6 +8,7 @@ use the lib:
 
 ------------------------------------------------------------
 ------------------------------------------------------------
+NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
 local HalfSize = SIFT.HalfSize;
 local DoubleSize = SIFT.DoubleSize;
 local gaussian = SIFT.gaussian;
@@ -16,11 +17,10 @@ local localmax = SIFT.localmax;
 
 ------------------------------------------------------------
 ]]
+NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
 
-NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua",true);
-
+-- TODO: local SIFT = commonlib.gettable("imp.SIFT");
 local SIFT = commonlib.gettable("SIFT");
-
 
 local zeros = imP.tensor.zeros;
 local zeros3 = imP.tensor.zeros3;
