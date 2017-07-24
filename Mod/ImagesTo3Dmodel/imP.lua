@@ -63,9 +63,10 @@ function imP.tensor.zeros3(h, w, d)
 	for i = 1, h do
 		self[i] = {};
 		for j = 1, w do
-			self[i][j]={};
+			local dd={};
+			self[i][j] = dd;
 			for k = 1, d do
-				self[i][j][k] = 0;
+				dd[k] = 0;
 			end
 		end
 	end
@@ -113,7 +114,7 @@ function imP.imread2Grey(filename)
 		end
 		return array;
 	else
-		print("The file is not valid");
+		LOG.std(nil, "warn", "ImageProcessing", "%s file is not valid", filename);
 	end
 end
 local imread2Grey = imP.imread2Grey;
@@ -121,29 +122,29 @@ local imread2Grey = imP.imread2Grey;
 
 -- Creat the txt file of the array.
 function imP.CreatTXT(array, filename)	
-	local file = io.open(filename, "w");
-	local h = table.getn(array);
-	if h ~= nil then
-		for j = 1, h do
-			local w = table.getn(array[j]);
-			if w ~= nil then
-				for i = 1, w do
-					file:write(array[j][i], "\t");
+	local file = ParaIO.open(filename, "w");
+	if(file:IsValid()) then
+		local h = table.getn(array);
+		if h ~= nil then
+			for j = 1, h do
+				local w = #(array[j]);
+				if w ~= nil then
+					for i = 1, w do
+						file:write(array[j][i], "\t");
+					end
 				end
+				file:write("\r");
 			end
-			file:write("\r");
 		end
+		file:close();
 	end
-	file:close();
 end
 local CreatTXT = imP.CreatTXT;
 
-
-
 -- Array dot product.
 function imP.tensor.DotProduct(array1, array2)
-	local h = table.getn(array1);
-	local w = table.getn(array1[1]);
+	local h = #(array1);
+	local w = #(array1[1]);
 	local array = zeros(h, w);
 	for i = 1, h do
 		for j = 1, w do
@@ -156,6 +157,12 @@ local DotProduct = imP.tensor.DotProduct;
 
 
 -- Here the array is matrix. Sum each elements of the array.
+-- e.g.
+-- array1={{1,2,3},{4,5,6},{7,8,9}};
+-- array2={{1,2,3},{4,5,6},{7,8,9}};
+-- array=DotProduct(array1,array2);
+-- sum=ArraySum(array);
+-- print(sum)
 function imP.tensor.ArraySum(array)
 	local h = table.getn(array);
 	local w = table.getn(array[1]);
@@ -168,12 +175,6 @@ function imP.tensor.ArraySum(array)
 	return sum;
 end
 local ArraySum = imP.tensor.ArraySum;
--- array1={{1,2,3},{4,5,6},{7,8,9}};
--- array2={{1,2,3},{4,5,6},{7,8,9}};
--- array=DotProduct(array1,array2);
--- sum=ArraySum(array);
--- print(sum)
-
 
 -- Show the each element of the array.
 function imP.tensor.ArrayShowE(array)
@@ -331,7 +332,7 @@ function imP.GetGaussian(sig)
 	end
 	local wsize = 2 * math.ceil(2 * sig) + 1;
 	local w = math.ceil(wsize / 2);
-	--local n=math.pow(10,math.ceil(-math.log10(1/sig^2*math.exp(-(w-1)^2/sig^2))));
+	--local n=math.pow(10,math.ceil(-math.log10(1/(sig^2)*math.exp(-(w-1)^2/sig^2))));
 	local g = zeros(wsize, wsize);
 	for i = 1, wsize do
 		for j = 1, wsize do
