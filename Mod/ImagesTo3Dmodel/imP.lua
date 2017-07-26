@@ -63,10 +63,9 @@ function imP.tensor.zeros3(h, w, d)
 	for i = 1, h do
 		self[i] = {};
 		for j = 1, w do
-			local dd={};
-			self[i][j] = dd;
+			self[i][j]={};
 			for k = 1, d do
-				dd[k] = 0;
+				self[i][j][k] = 0;
 			end
 		end
 	end
@@ -122,24 +121,24 @@ local imread2Grey = imP.imread2Grey;
 
 -- Creat the txt file of the array.
 function imP.CreatTXT(array, filename)	
-	local file = ParaIO.open(filename, "w");
-	if(file:IsValid()) then
-		local h = table.getn(array);
-		if h ~= nil then
-			for j = 1, h do
-				local w = #(array[j]);
-				if w ~= nil then
-					for i = 1, w do
-						file:write(array[j][i], "\t");
-					end
+	local file = Paraio.open(filename, "w");
+	local h = #(array);
+	if h ~= nil then
+		for j = 1, h do
+			local w = #(array[j]);
+			if w ~= nil then
+				for i = 1, w do
+					file:write(array[j][i], "\t");
 				end
-				file:write("\r");
 			end
+			file:write("\r");
 		end
-		file:close();
 	end
+	file:close();
 end
 local CreatTXT = imP.CreatTXT;
+
+
 
 -- Array dot product.
 function imP.tensor.DotProduct(array1, array2)
@@ -157,15 +156,9 @@ local DotProduct = imP.tensor.DotProduct;
 
 
 -- Here the array is matrix. Sum each elements of the array.
--- e.g.
--- array1={{1,2,3},{4,5,6},{7,8,9}};
--- array2={{1,2,3},{4,5,6},{7,8,9}};
--- array=DotProduct(array1,array2);
--- sum=ArraySum(array);
--- print(sum)
 function imP.tensor.ArraySum(array)
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local sum = 0;
 	for i = 1, h do
 		for j = 1, w do 
@@ -175,6 +168,12 @@ function imP.tensor.ArraySum(array)
 	return sum;
 end
 local ArraySum = imP.tensor.ArraySum;
+-- array1={{1,2,3},{4,5,6},{7,8,9}};
+-- array2={{1,2,3},{4,5,6},{7,8,9}};
+-- array=DotProduct(array1,array2);
+-- sum=ArraySum(array);
+-- print(sum)
+
 
 -- Show the each element of the array.
 function imP.tensor.ArrayShowE(array)
@@ -206,8 +205,8 @@ local ArrayShow3 = imP.tensor.ArrayShow3;
 
 -- Array mutliplies number.
 function imP.tensor.ArrayMutl(array, n)
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local array_o = zeros(h, w)
 	for i = 1, h do
 		for j = 1, w do
@@ -222,8 +221,8 @@ local ArrayMutl = imP.tensor.ArrayMutl;
 
 -- Array addes number.
 function imP.tensor.ArrayAdd(array, n)
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local array_o = zeros(h, w);
 	for i = 1, h do
 		for j = 1, w do
@@ -238,10 +237,10 @@ local ArrayAdd = imP.tensor.ArrayAdd;
 
 -- Two having same heigth and width array add
 function imP.tensor.ArrayAddArray(array1, array2)
-	local h1 = table.getn(array1);
-	local w1 = table.getn(array1[1]);
-	local h2 = table.getn(array2);
-	local w2 = table.getn(array2[1]);
+	local h1 = #(array1);
+	local w1 = #(array1[1]);
+	local h2 = #(array2);
+	local w2 = #(array2[1]);
 	if(h1==h2 and w1==w2) then
 		local array = zeros(h1, w1);
 		for i = 1, h1 do
@@ -332,7 +331,7 @@ function imP.GetGaussian(sig)
 	end
 	local wsize = 2 * math.ceil(2 * sig) + 1;
 	local w = math.ceil(wsize / 2);
-	--local n=math.pow(10,math.ceil(-math.log10(1/(sig^2)*math.exp(-(w-1)^2/sig^2))));
+	--local n=math.pow(10,math.ceil(-math.log10(1/sig^2*math.exp(-(w-1)^2/sig^2))));
 	local g = zeros(wsize, wsize);
 	for i = 1, wsize do
 		for j = 1, wsize do
@@ -351,8 +350,8 @@ local GetGaussian = imP.GetGaussian;
 
 -- Gaussian Filter
 function imP.GaussianF(array, sig)
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local G = zeros(h, w);
 	if sig==nil then
 		sig = 1;
@@ -392,8 +391,8 @@ function imP.DoG(array, sig, n)
 	end
 	local k = math.pow(2, 1 / n);
 	local d = math.ceil(2 * sig * math.pow(k, n-1)) + 1;
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local G = {};
 	for i = 1, n do
 		G[i] = GaussianF(array, sig * math.pow(k, i-1));
@@ -464,9 +463,9 @@ local meshgrid = imP.tensor.meshgrid;
 -- Computer the convolation of 2D array.
 -- Where A is origanal array, B is the kenel.
 function imP.tensor.conv2(A, B)
-	local h = table.getn(A);
-	local w = table.getn(A[1]);
-	local wsize = table.getn(B);
+	local h = #(A);
+	local w = #(A[1]);
+	local wsize = #(B);
 	local d = math.floor(wsize / 2);
 	local u = math.ceil(wsize / 2);
 	local N = zeros(h, w);
@@ -510,8 +509,8 @@ local Trace2 = imP.tensor.Trace2;
 function imP.HarrisCD(array)
 	local sig = 1;
 	local wsize = 7;
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local xx = meshgrid(-3, 3, 1);
 	local yy = meshgrid(-3, 3, 0);
 	local M = ArrayAddArray(DotProduct(xx, xx), DotProduct(yy, yy));
