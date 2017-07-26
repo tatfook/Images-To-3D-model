@@ -8,7 +8,6 @@ use the lib:
 
 ------------------------------------------------------------
 ------------------------------------------------------------
-NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
 local HalfSize = SIFT.HalfSize;
 local DoubleSize = SIFT.DoubleSize;
 local gaussian = SIFT.gaussian;
@@ -17,10 +16,11 @@ local localmax = SIFT.localmax;
 
 ------------------------------------------------------------
 ]]
+
 NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
 
--- TODO: local SIFT = commonlib.gettable("imp.SIFT");
 local SIFT = commonlib.gettable("SIFT");
+
 
 local zeros = imP.tensor.zeros;
 local zeros3 = imP.tensor.zeros3;
@@ -104,7 +104,7 @@ local DoubleSize = SIFT.DoubleSize;
 -- ArrayShow(b)
 
 
--- The SIFT algorithm
+
 
 
 function SIFT.gaussian(I, O, S, omin, smin, smax)
@@ -255,6 +255,8 @@ function SIFT.localmax(octave, thresh, smin)
 end
 local localmax = SIFT.localmax;
 
+
+-- The SIFT algorithm
 function SIFT.SIFT(I, O, S)
 	local S = 3;
 	local omin = 0;
@@ -269,17 +271,17 @@ function SIFT.SIFT(I, O, S)
 	local frames = {};
 	local descriptors = {};
 
-	print("---------- Extract SIFT features from an image ----------");
-	print("SIFT: constructing scale space with DoG ..."); 
+    LOG.std("---------- Extract SIFT features from an image ----------");
+    LOG.std("SIFT: constructing scale space with DoG ..."); 
 
 	local scalespace = gaussian(I, O, S, omin, -1, S+1);
 	local difofg = diffofg(scalespace);
 
 	for o = 1, scalespace.O do
-		print("SIFT: computing octave: ",o-1+omin);
+	    LOG.std("SIFT: computing octave: ",o-1+omin);
 		oframes = localmax(difofg.octave[o], 0.8*thresh, difofg.smin);
         
-        print("SIFT: initial keypoints: ",#oframes[1]);
+           LOG.std("SIFT: initial keypoints: ",#oframes[1]);
         
 
 	end
