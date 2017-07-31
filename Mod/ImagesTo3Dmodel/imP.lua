@@ -37,11 +37,24 @@ local conv2 = imP.tensor.conv2;
 local Det2 = imP.tensor.Det2;
 local Trace2 = imP.tensor.Trace2;
 local HarrisCD = imP.HarrisCD;
+local GetColumn = imP.tensor.GetColumn;
+local MatrixMultiple = imP.tensor.MatrixMultiple;
+local det = imP.tensor.det;
+local SubMartrix = imP.tensor.SubMartrix;
+local inv = imP.tensor.inv;
+local find = imP.tensor.find;
+local subvector = imP.tensor.subvector;
+local submatrix = imP.tensor.submatrix;
+local connect = imP.tensor.connect;
+local reshape = imP.tensor.reshape;
+local transposition = imP.tensor.transposition;
+
 ------------------------------------------------------------
 ]]
 
 local imP = commonlib.gettable("imP");
 local imP.tensor = commonlib.inherit(nil, commonlib.gettable("imP.imP.tensor"));
+
 
 -- Creat the zeros matrix.
 function imP.tensor.zeros(height, width)
@@ -59,14 +72,13 @@ local zeros = imP.tensor.zeros;
 
 -- Creat the 3D zeros matrix.
 function imP.tensor.zeros3(h, w, d)
-	local self={};
+	local self = {};
 	for i = 1, h do
 		self[i] = {};
 		for j = 1, w do
-			local dd={};
-			self[i][j] = dd;
+			self[i][j] = {};
 			for k = 1, d do
-				dd[k] = 0;
+				self[i][j][k] = 0;
 			end
 		end
 	end
@@ -114,7 +126,7 @@ function imP.imread2Grey(filename)
 		end
 		return array;
 	else
-		LOG.std(nil, "warn", "ImageProcessing", "%s file is not valid", filename);
+		print("The file is not valid");
 	end
 end
 local imread2Grey = imP.imread2Grey;
@@ -122,30 +134,30 @@ local imread2Grey = imP.imread2Grey;
 
 -- Creat the txt file of the array.
 function imP.CreatTXT(array, filename)	
-	local file = ParaIO.open(filename, "w");
-	if(file:IsValid()) then
-		local h = table.getn(array);
-		if h ~= nil then
-			for j = 1, h do
-				local w = #(array[j]);
-				if w ~= nil then
-					for i = 1, w do
-						file:write(array[j][i], "\t");
-					end
+	local file = io.open(filename, "w");
+	local h = #(array);
+	if h ~= nil then
+		for j = 1, h do
+			local w = #(array[j]);
+			if w ~= nil then
+				for i = 1, w do
+					file:write(array[j][i], "\t");
 				end
-				file:write("\r");
 			end
+			file:write("\r");
 		end
-		file:close();
 	end
+	file:close();
 end
 local CreatTXT = imP.CreatTXT;
+
+
 
 -- Array dot product.
 function imP.tensor.DotProduct(array1, array2)
 	local h = #(array1);
 	local w = #(array1[1]);
-	local array = zeros(h, w);
+	array = zeros(h, w);
 	for i = 1, h do
 		for j = 1, w do
 			array[i][j] = array1[i][j] * array2[i][j];
@@ -157,15 +169,9 @@ local DotProduct = imP.tensor.DotProduct;
 
 
 -- Here the array is matrix. Sum each elements of the array.
--- e.g.
--- array1={{1,2,3},{4,5,6},{7,8,9}};
--- array2={{1,2,3},{4,5,6},{7,8,9}};
--- array=DotProduct(array1,array2);
--- sum=ArraySum(array);
--- print(sum)
 function imP.tensor.ArraySum(array)
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local sum = 0;
 	for i = 1, h do
 		for j = 1, w do 
@@ -175,6 +181,12 @@ function imP.tensor.ArraySum(array)
 	return sum;
 end
 local ArraySum = imP.tensor.ArraySum;
+-- array1={{1,2,3},{4,5,6},{7,8,9}};
+-- array2={{1,2,3},{4,5,6},{7,8,9}};
+-- array=DotProduct(array1,array2);
+-- sum=ArraySum(array);
+-- print(sum)
+
 
 -- Show the each element of the array.
 function imP.tensor.ArrayShowE(array)
@@ -189,7 +201,7 @@ local ArrayShowE = imP.tensor.ArrayShowE;
 -- Show the array.
 function imP.tensor.ArrayShow(array)
 	for i, v in pairs(array) do
-		print(table.concat(v," "));
+		print(table.concat(v, " "));
 	end
 end
 local ArrayShow = imP.tensor.ArrayShow;
@@ -198,7 +210,7 @@ local ArrayShow = imP.tensor.ArrayShow;
 function imP.tensor.ArrayShow3(array)
 	for i, v in pairs(array) do
 		for j, w in pairs(v) do
-		    print(table.concat(w," "));
+			print(table.concat(w, " "));
 		end
 	end
 end
@@ -206,8 +218,8 @@ local ArrayShow3 = imP.tensor.ArrayShow3;
 
 -- Array mutliplies number.
 function imP.tensor.ArrayMutl(array, n)
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local array_o = zeros(h, w)
 	for i = 1, h do
 		for j = 1, w do
@@ -222,8 +234,8 @@ local ArrayMutl = imP.tensor.ArrayMutl;
 
 -- Array addes number.
 function imP.tensor.ArrayAdd(array, n)
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local array_o = zeros(h, w);
 	for i = 1, h do
 		for j = 1, w do
@@ -238,10 +250,10 @@ local ArrayAdd = imP.tensor.ArrayAdd;
 
 -- Two having same heigth and width array add
 function imP.tensor.ArrayAddArray(array1, array2)
-	local h1 = table.getn(array1);
-	local w1 = table.getn(array1[1]);
-	local h2 = table.getn(array2);
-	local w2 = table.getn(array2[1]);
+	local h1 = #(array1);
+	local w1 = #(array1[1]);
+	local h2 = #(array2);
+	local w2 = #(array2[1]);
 	if(h1==h2 and w1==w2) then
 		local array = zeros(h1, w1);
 		for i = 1, h1 do
@@ -332,11 +344,11 @@ function imP.GetGaussian(sig)
 	end
 	local wsize = 2 * math.ceil(2 * sig) + 1;
 	local w = math.ceil(wsize / 2);
-	--local n=math.pow(10,math.ceil(-math.log10(1/(sig^2)*math.exp(-(w-1)^2/sig^2))));
+	--local n=math.pow(10,math.ceil(-math.log10(1/sig^2*math.exp(-(w-1)^2/sig^2))));
 	local g = zeros(wsize, wsize);
 	for i = 1, wsize do
 		for j = 1, wsize do
-			g[i][j] = (1 / sig^2) * math.exp(-((i-w)^2 + (j - w)^2) / 2 / sig^2);
+			g[i][j] =(1 / sig^2) * math.exp(-((i-w)^2 +(j - w)^2) / 2 / sig^2);
 		end
 	end
 	sum = ArraySum(g)
@@ -351,8 +363,8 @@ local GetGaussian = imP.GetGaussian;
 
 -- Gaussian Filter
 function imP.GaussianF(array, sig)
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local G = zeros(h, w);
 	if sig==nil then
 		sig = 1;
@@ -392,8 +404,8 @@ function imP.DoG(array, sig, n)
 	end
 	local k = math.pow(2, 1 / n);
 	local d = math.ceil(2 * sig * math.pow(k, n-1)) + 1;
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local G = {};
 	for i = 1, n do
 		G[i] = GaussianF(array, sig * math.pow(k, i-1));
@@ -464,18 +476,19 @@ local meshgrid = imP.tensor.meshgrid;
 -- Computer the convolation of 2D array.
 -- Where A is origanal array, B is the kenel.
 function imP.tensor.conv2(A, B)
-	local h = table.getn(A);
-	local w = table.getn(A[1]);
-	local wsize = table.getn(B);
-	local d = math.floor(wsize / 2);
-	local u = math.ceil(wsize / 2);
+	local h = #(A);
+	local w = #(A[1]);
+	local hsize = #(B);
+	local wsize = #(B[1])
+	local d = math.floor(hsize / 2);
+	local u = math.floor(wsize / 2);
 	local N = zeros(h, w);
-	local M = zeros(wsize, wsize);
+	local M = zeros(hsize, wsize);
 	for i = 1 + d, h - d do
-		for j = 1 + d, w - d do
-			for p = 1, wsize do
+		for j = 1 + u, w - u do
+			for p = 1, hsize do
 				for q = 1, wsize do
-					M[p][q] = A[i + p-u][j + q-u];
+					M[p][q] = A[i + p-d-1][j + q-u-1];
 				end
 			end
 			N[i][j] = ArraySum(DotProduct(M, B));
@@ -486,7 +499,8 @@ end
 local conv2 = imP.tensor.conv2;
 -- C={{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5}};
 -- B={{1,2,3},{4,5,6},{7,8,9}};
--- a=conv2(C,B);
+-- D={{-1,2,-1}};E={{-1},{2},{-1}};
+-- a=conv2(C,E);
 -- ArrayShow(a);
 
 
@@ -510,8 +524,8 @@ local Trace2 = imP.tensor.Trace2;
 function imP.HarrisCD(array)
 	local sig = 1;
 	local wsize = 7;
-	local h = table.getn(array);
-	local w = table.getn(array[1]);
+	local h = #(array);
+	local w = #(array[1]);
 	local xx = meshgrid(-3, 3, 1);
 	local yy = meshgrid(-3, 3, 0);
 	local M = ArrayAddArray(DotProduct(xx, xx), DotProduct(yy, yy));
@@ -556,3 +570,276 @@ function imP.HarrisCD(array)
 	return result;
 end
 local HarrisCD = imP.HarrisCD;
+
+
+--Get a column in a Matrix
+function imP.tensor.GetColumn(M, column)
+	local self = zeros(1, #M);
+	for i = 1, #M do
+		self[1][i] = M[i][column];
+	end
+	return self;
+end
+local GetColumn = imP.tensor.GetColumn;
+
+-- Matrix multiple
+--[[a={{1, 2},{4, 5}};
+b={{1, 2},{1, 5}};
+c=MatrixMultiple(a,b);
+ArrayShow(c)]]
+function imP.tensor.MatrixMultiple(M1, M2)
+	local row1 = #M1;
+	local column1 = #M1[1];
+	local row2 = #M2;
+	local column2 = #M2[1];
+	if column1 == row2 then
+		local self = zeros(row1, column2);
+		for i = 1, row1 do
+			for j = 1, column2 do	
+				self[i][j] = ArraySum(DotProduct({M1[i]}, GetColumn(M2, j)));
+			end
+		end
+		return self;
+	end
+end
+local MatrixMultiple = imP.tensor.MatrixMultiple;
+
+-- Determine of 2 or 3 dimensions martrix
+--[[
+a={{1, 2},{4, 5}};
+b={{1, 2, 3},{4, 5, 6},{7, 8, 9}};
+print(det(a),det(b))]]
+function imP.tensor.det(M)
+	local row = #M;
+	local column = #M[1];
+	if(row == column) and(row == 2) then
+		local det2 = M[1][1] * M[2][2]-M[1][2] * M[2][1];
+		return det2;
+	elseif(row == column) and(row == 3) then
+		local det3 =(M[1][1] * M[2][2] * M[3][3] + M[1][2] * M[2][3] * M[3][1]
+		+ M[1][3] * M[2][1] * M[3][2]-M[1][1] * M[2][3] * M[3][2]
+		-M[1][2] * M[2][1] * M[3][3]-M[1][3] * M[2][2] * M[3][1]);
+		return det3;
+	end	
+end
+local det = imP.tensor.det;
+
+
+-- The Sub martrix which remove the i-th row and j-th column
+--[[
+b={{1, 2, 3},{4, 5, 6},{7, 8, 9}};
+ArrayShow(b)
+ArrayShow(SubMartrix(b,1,0))
+ArrayShow(SubMartrix(b,2,2))]]
+function imP.tensor.SubMartrix(M, i, j)
+	local row = #M;
+	local column = #M[1];
+	local self = zeros(row, column);
+	for m = 1, row do
+		for n = 1, column do
+			self[m][n] = M[m][n];
+		end
+	end
+	if(i <= row) and(j <= column) and(i > 0) and(j >0 ) then
+		table.remove(self, i);
+		for i = 1, row-1 do
+			table.remove(self[i], j);
+		end
+	elseif(i <= row) and(j == 0) then
+		table.remove(self, i);
+	elseif(i == 0) and(j <= column) then
+		for i = 1, row do
+			table.remove(self[i], j);
+		end
+	end
+	return self;
+end
+local SubMartrix = imP.tensor.SubMartrix;
+
+
+-- Inverse Matrix of 2 or 3 dimensions martrix
+--[[
+a={{1, 2},{4, 5}};
+b={{1, 2, 3},{4, 5, 6},{7, 8, 10}};
+ArrayShow(inv(a))
+ArrayShow(inv(b))]]
+function imP.tensor.inv(M)
+	local row = #M;
+	local column = #M[1];
+	if(row == column) and(row == 2) then
+		local inv2 = ArrayMutl({{M[2][2], -M[1][2]}, {-M[2][1], M[1][1]}}, 1 / det(M));
+		return inv2;
+	elseif(row == column) and(row == 3) then
+		local inv3 = zeros(3, 3);
+		local det3 = det(M);
+		for i = 1, 3 do
+			for j = 1, 3 do	
+				inv3[j][i] =(-1)^(i + j) * det(SubMartrix(M, i, j)) / det3;
+				--print(inv3[i][j], det(SubMartrix(M,i,j)),det3)
+			end
+		end
+		return inv3;
+	end	
+end
+local inv = imP.tensor.inv;
+
+--return the key of specified value
+--@param value: double or integer
+--@param bool: 如果bool为true，返回value索引，否则返回不等于value的索引
+--@return x,y:  ...  默认返回0元素真索引
+--如果tab为1维，返回的y为nil88
+function imP.tensor.find(tab, value, bool)
+	if value==nil then
+		value = 0;
+	end
+	if bool==nil then
+		bool = true;
+	end	
+	local x = {};
+	local y = {};
+	if bool == true then
+		for k, v in pairs(tab) do 
+			if type(tab[k]) == "table" then
+				for j, i in pairs(tab[k]) do
+					if i==value then 
+						x[#x + 1] = k;
+						y[#y + 1] = j;
+					end
+				end
+			else
+				if v==value then
+					x[#x + 1] = k;
+					y[#y + 1] = nil;
+				end
+			end
+		end 
+	else
+		for k, v in pairs(tab) do 
+			if type(tab[k]) == "table" then
+				for j, i in pairs(tab[k]) do
+					if i~=value then 
+						x[#x + 1] = k;
+						y[#y + 1] = j;
+					end
+				end
+			else
+				if v~=value then
+					x[#x + 1] = k;
+					y[#y + 1] = nil;
+				end
+			end
+		end 
+	end
+	return x, y
+end
+local find = imP.tensor.find;
+
+--截取vector中n到m的一部分
+function imP.tensor.subvector(vector, n, m)
+	if n==nil then
+		n = 1;
+	end
+
+	if m==nil then
+		m = #vector;
+	end	
+	local subv = {};
+	if n ~= m then
+		for i = n, m do
+			subv[#subv + 1] = vector[i]; --type is table
+		end
+	else
+		subv = vector[m];  --type is number
+	end
+	return subv;
+end
+local subvector = imP.tensor.subvector;
+
+--截取matrix中一部分
+function imP.tensor.submatrix(matrix, a, b, c, d)
+	if a==nil then
+		a = 1;
+	end	
+	if b==nil then
+		m = #matrix;
+	end	
+	if c==nil then
+		c = 1;
+	end	
+	if d==nil then
+		d = #matrix[1];
+	end	
+	local subm = {};
+	for i = 1, b-a + 1 do
+		subm[i] = {}
+		for j = 1, d-c + 1 do 
+			subm[i][j] = matrix[i-1 + a][j - 1 + c];
+		end
+	end
+	return subm;
+end
+local submatrix = imP.tensor.submatrix;
+
+--connect 2 vector
+function imP.tensor.connect(A, B)
+	local row1 = #A;
+	local column1 = #A[1];
+	local row2 = #B;
+	local column2 = #B[1];
+	if row1 == row2 then
+		local self = zeros(row1, column1 + column2);
+		for j = 1, column1 + column2 do
+			for i = 1, row1 do
+				if j <= column1 then
+					self[i][j] = A[i][j];
+				elseif j > column1 then
+					self[i][j] = B[i][j-column1];
+				end
+			end
+		end
+		return self;
+	end
+end
+local connect = imP.tensor.connect;
+
+
+--turn the size of A to m * n
+--return type is table
+function imP.tensor.reshape(A, m, n)
+	local a = #A;
+	local b = #A[1];
+	local V = {};
+	local result = {};
+	if b ~= nil then --A is a matrix
+		for k, v in pairs(A) do
+			V = connect(V, A[k]);
+		end
+		if m == 1 then
+			result = V;
+		else
+			for i = 1, m do
+				result[i] = subvector(V, 1 + n * (i - 1), n * i);
+			end
+		end
+	else --A is a vector, m usually will not be 1
+		for i = 1, m do 
+			result[i] = subvector(A, 1 + n * (i - 1), n * i);
+		end		
+	end
+	return result;
+end
+local reshape = imP.tensor.reshape;
+
+-- Matrix transposition
+function imP.tensor.transposition(M)
+	local row = #M;
+	local column = #M[1];
+	local self = zeros(column, row);
+	for i = 1, row do
+		for j = 1, column do
+			self[j][i] = M[i][j];
+		end
+	end
+	return self;
+end
+local transposition = imP.tensor.transposition;
