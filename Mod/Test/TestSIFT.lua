@@ -5,7 +5,7 @@ Date: 2017/8/4
 Desc: 
 use the lib:
 ------------------------------------------------------------
-NPL.load("(gl)Mod/ImagesTo3Dmodel/TestSIFT.lua",true);
+NPL.load("(gl)Mod/Test/TestSIFT.lua",true);
 ------------------------------------------------------------
 ]]
 

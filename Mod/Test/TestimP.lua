@@ -1,11 +1,11 @@
 --[[
 Title: imP test file
 Author(s): BerryZSZ
-Date: 2017/6/28
+Date: 2017/8/12
 Desc: 
 use the lib:
 ------------------------------------------------------------
-NPL.load("(gl)Mod/ImagesTo3Dmodel/TestimP.lua");
+NPL.load("(gl)Mod/Test/TestimP.lua");
 ------------------------------------------------------------
 ]]
 

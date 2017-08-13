@@ -42,23 +42,14 @@
   <ItemGroup>
     <Content Include="script/**" />
     <Content Include="Mod/ImagesTo3Dmodel\main.lua" />
-    <Content Include="Mod/Test\DemoCommand.lua" />
-    <Content Include="Mod/Test\DemoEntity.lua" />
-    <Content Include="Mod/Test\DemoGUI.html" />
-    <Content Include="Mod/Test\DemoGUI.lua" />
-    <Content Include="Mod/Test\DemoItem.lua" />
-    <Content Include="Mod/Test\DemoSceneContext.lua" />
-    <Content Include="Mod/Test\main.lua" />
   </ItemGroup>
   <ItemGroup>
     <None Include="InstallPackages.bat" />
     <None Include="Mod\ImagesTo3Dmodel\imP.lua" />
-    <None Include="Mod\ImagesTo3Dmodel\imRW.lua" />
-    <None Include="Mod\ImagesTo3Dmodel\models.lua" />
     <None Include="Mod\ImagesTo3Dmodel\SIFT.lua" />
-    <None Include="Mod\ImagesTo3Dmodel\TestimP.lua" />
-    <None Include="Mod\ImagesTo3Dmodel\TestSIFT.lua" />
-    <None Include="Mod\ImagesTo3Dmodel\TestSIFTmatching.lua" />
+    <None Include="Mod\Test\TestimP.lua" />
+    <None Include="Mod\Test\TestSIFT.lua" />
+    <None Include="Mod\Test\TestSIFTmatching.lua" />
     <None Include="README.md" />
     <None Include="Run.bat" />
   </ItemGroup>
