@@ -56,7 +56,7 @@
     <None Include="Mod\ImagesTo3Dmodel\imRW.lua" />
     <None Include="Mod\ImagesTo3Dmodel\models.lua" />
     <None Include="Mod\ImagesTo3Dmodel\SIFT.lua" />
-    <None Include="Mod\ImagesTo3Dmodel\TestAbc.lua" />
+    <None Include="Mod\ImagesTo3Dmodel\TestimP.lua" />
     <None Include="Mod\ImagesTo3Dmodel\TestSIFT.lua" />
     <None Include="Mod\ImagesTo3Dmodel\TestSIFTmatching.lua" />
     <None Include="README.md" />

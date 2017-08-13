@@ -25,13 +25,13 @@ local DotProduct = imP.tensor.DotProduct;
 local ArraySum = imP.tensor.ArraySum;
 local ArrayShow = imP.tensor.ArrayShow;
 local ArrayShow3 = imP.tensor.ArrayShow3;
-local ArrayMutl = imP.tensor.ArrayMutl;
+local ArrayMult = imP.tensor.ArrayMult;
 local ArrayAdd = imP.tensor.ArrayAdd;
 local ArrayAddArray = imP.tensor.ArrayAddArray;
-local Array2Max = imP.tensor.Array2Max;
-local Array2Min = imP.tensor.Array2Min;
-local Array3Max = imP.tensor.Array3Max;
-local Array3Min = imP.tensor.Array3Min;
+local FindMax2 = imP.tensor.FindMax2;
+local FindMin2 = imP.tensor.FindMin2;
+local FindMax3 = imP.tensor.FindMax3;
+local FindMin3 = imP.tensor.FindMin3;
 local GetGaussian = imP.GetGaussian;
 local GaussianF = imP.GaussianF;
 local DoG = imP.DoG;
@@ -54,6 +54,8 @@ local transposition = imP.tensor.transposition;
 local norm = imP.tensor.norm;
 local dot = imP.tensor.dot;
 local mod = imP.tensor.mod;
+local Spline = imP.tensor.Spline;
+local imresize = imP.tensor.imresize;
 
 local HalfSize = SIFT.HalfSize;
 local DoubleSize = SIFT.DoubleSize;
@@ -66,8 +68,8 @@ local descriptor = SIFT.descriptor;
 local DO_SIFT = SIFT.DO_SIFT;
 local match = SIFT.match;
 
---local Im_filename = "Mod/ImagesTo3Dmodel/demo-data/church3/1.jpg";
-local Im_filename = "Mod/ImagesTo3Dmodel/demo-data/2.JPG";
+local Im_filename = "Mod/ImagesTo3Dmodel/demo-data/church3/2.jpg";
+--local Im_filename = "Mod/ImagesTo3Dmodel/demo-data/2.JPG";
 
 
 --local TXT_filename = "D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/demo-data/fountain/1.txt";
@@ -78,7 +80,10 @@ local Im = imread(Im_filename);
 local I = rgb2gray(Im);
 --CreatTXT(I1, TXT1_filename);
 
-local frames1, descriptors1, scalespace1, difofg1 = DO_SIFT(I);
+local I_O = imresize(I, 500/math.min(#I, #I[1]));
+
+
+local frames1, descriptors1, scalespace1, difofg1 = DO_SIFT(I_O);
 
 --ArrayShow(descriptors1)
 

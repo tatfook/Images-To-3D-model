@@ -23,13 +23,13 @@ local ArraySum = imP.tensor.ArraySum;
 local ArrayShowE = imP.tensor.ArrayShowE;
 local ArrayShow = imP.tensor.ArrayShow;
 local ArrayShow3 = imP.tensor.ArrayShow3;
-local ArrayMutl = imP.tensor.ArrayMutl;
+local ArrayMult = imP.tensor.ArrayMult;
 local ArrayAdd = imP.tensor.ArrayAdd;
 local ArrayAddArray = imP.tensor.ArrayAddArray;
-local Array2Max = imP.tensor.Array2Max;
-local Array2Min = imP.tensor.Array2Min;
-local Array3Max = imP.tensor.Array3Max;
-local Array3Min = imP.tensor.Array3Min;
+local FindMax2 = imP.tensor.FindMax2;
+local FindMin2 = imP.tensor.FindMin2;
+local FindMax3 = imP.tensor.FindMax3;
+local FindMin3 = imP.tensor.FindMin3;
 local GetGaussian = imP.GetGaussian;
 local GaussianF = imP.GaussianF;
 local DoG = imP.DoG;
@@ -41,7 +41,7 @@ local HarrisCD = imP.HarrisCD;
 local GetColumn = imP.tensor.GetColumn;
 local MatrixMultiple = imP.tensor.MatrixMultiple;
 local det = imP.tensor.det;
-local SubMartrix = imP.tensor.SubMartrix;
+local SubMatrix = imP.tensor.SubMatrix;
 local inv = imP.tensor.inv;
 local find = imP.tensor.find;
 local subvector = imP.tensor.subvector;
@@ -53,6 +53,8 @@ local norm = imP.tensor.norm;
 local dot = imP.tensor.dot;
 local mod = imP.tensor.mod;
 local gradient = imP.tensor.gradient;
+local Spline = imP.tensor.Spline;
+local imresize = imP.tensor.imresize;
 
 ------------------------------------------------------------
 ]]
@@ -93,7 +95,23 @@ local zeros3 = imP.tensor.zeros3;
 
 -- Find the nearest integer.
 function imP.Round(n)
-	local self = math.floor(n + 0.5);
+	local self;
+	if type(n) == "number" then
+		self = math.floor(n + 0.5);
+	elseif type(n) == "table" and type(n[1]) =="number" then
+		self = {};
+		for i, v in ipairs(n) do
+			table.insert(self,1, math.floor(v + 0.5));
+		end
+	elseif type(n) == "table" and type(n[1]) == "table" then
+		self = {};
+		for i, v in ipairs(n) do
+			table.insert(self, i, {});
+			for j, m in ipairs(v) do 
+				table.insert(self[i], j, math.floor(n[i][j]));
+			end
+		end
+	end
 	return self;
 end
 local Round = imP.Round;
@@ -236,7 +254,7 @@ end
 local ArrayShow3 = imP.tensor.ArrayShow3;
 
 -- Array mutliplies number.
-function imP.tensor.ArrayMutl(array, n, output)
+function imP.tensor.ArrayMult(array, n, output)
 	if type(array[1]) == "table" then
 		local h = #(array);
 		local w = #(array[1]);
@@ -255,8 +273,8 @@ function imP.tensor.ArrayMutl(array, n, output)
 		return array1_o;
 	end
  end
-local ArrayMutl = imP.tensor.ArrayMutl;
---ArrayShow(ArrayMutl(array,3))
+local ArrayMult = imP.tensor.ArrayMult;
+--ArrayShow(ArrayMult(array,3))
 
 
 -- Array addes number.
@@ -297,7 +315,7 @@ local ArrayAddArray = imP.tensor.ArrayAddArray;
 -- ArrayShow(ArrayAddArray(a,b))
 
 -- Find the Max Value of the 2D Array
-function imP.tensor.Array2Max(array)
+function imP.tensor.FindMax2(array)
 	local max = array[1][1];
 	for i, v in ipairs(array) do
 		for j, m in ipairs(array[i]) do	
@@ -308,11 +326,11 @@ function imP.tensor.Array2Max(array)
 	end 
 	return max;
 end
-local Array2Max = imP.tensor.Array2Max;
+local FindMax2 = imP.tensor.FindMax2;
 
 
 -- Find the Min Value of the 2D Array
-function imP.tensor.Array2Min(array)
+function imP.tensor.FindMin2(array)
 	local min = array[1][1];
 	for i, v in ipairs(array) do
 		for j, m in ipairs(array[i]) do
@@ -323,11 +341,11 @@ function imP.tensor.Array2Min(array)
 	end 
 	return min;
 end
-local Array2Min = imP.tensor.Array2Min;
+local FindMin2 = imP.tensor.FindMin2;
 
 
 -- Find the Max Value of the 3D Array
-function imP.tensor.Array3Max(array)
+function imP.tensor.FindMax3(array)
 	local max = array[1][1][1];
 	for i, v in ipairs(array) do
 		for j, m in ipairs(array[i]) do
@@ -340,11 +358,11 @@ function imP.tensor.Array3Max(array)
 	end 
 	return max;
 end
-local Array3Max = imP.tensor.Array3Max;
+local FindMax3 = imP.tensor.FindMax3;
 
 
 -- Find the Min Value of the 3D Array
-function imP.tensor.Array3Min(array)
+function imP.tensor.FindMin3(array)
 	local min = array[1][1][1];
 	for i, v in ipairs(array) do
 		for j, m in ipairs(array[i]) do
@@ -357,11 +375,11 @@ function imP.tensor.Array3Min(array)
 	end 
 	return min;
 end
-local Array3Min = imP.tensor.Array3Min;
+local FindMin3 = imP.tensor.FindMin3;
 -- a={{{1,2,3},{1,2,3},{1,2,3}},{{1,2,3},{1,2,3},{1,2,3}},{{1,2,3},{1,2,3},{1,2,3}}};
--- print(Array3Min(a),Array3Max(a))
+-- print(FindMin3(a),FindMax3(a))
 -- b={{1,2,3},{1,2,3},{1,2,3}};
--- print(Array2Min(b),Array2Max(b))
+-- print(FindMin2(b),FindMax2(b))
 
 
 -- Get the Gaussian nucleus from the window size(wsize) and the sigma(sig).
@@ -379,7 +397,7 @@ function imP.GetGaussian(sig)
 		end
 	end
 	sum = ArraySum(g)
-	g = ArrayMutl(g, 1 / sum);
+	g = ArrayMult(g, 1 / sum);
 	return g;
 end
 local GetGaussian = imP.GetGaussian;
@@ -440,7 +458,7 @@ function imP.DoG(array, sig, n)
 	end
 	local DoG = {};
 	for i = 1, n-1 do
-		DoG[i] = ArrayAddArray(G[i + 1], ArrayMutl(G[i], -1));
+		DoG[i] = ArrayAddArray(G[i + 1], ArrayMult(G[i], -1));
 	end
 	local A = {};
 	for i = 1, 3 do
@@ -457,9 +475,9 @@ function imP.DoG(array, sig, n)
 						end
 					end
 				end
-				if DoG[q][i][j]==Array3Max(A) then
+				if DoG[q][i][j]==FindMax3(A) then
 					F[i][j] = q + F[i][j];
-				elseif DoG[q][i][j]==Array3Min(A) then
+				elseif DoG[q][i][j]==FindMin3(A) then
 					F[i][j] = q + n + F[i][j];
 				else
 					F[i][j] = 0;
@@ -601,8 +619,8 @@ local HarrisCD = imP.HarrisCD;
 
 
 --Get a column in a Matrix
-function imP.tensor.GetColumn(M, column)
-	local self = zeros(1, #M);
+function imP.tensor.GetColumn(M, column, output)
+	local self = zeros(1, #M) or output;
 	for i = 1, #M do
 		self[1][i] = M[i][column];
 	end
@@ -615,16 +633,16 @@ local GetColumn = imP.tensor.GetColumn;
 b={{1, 2},{1, 5}};
 c=MatrixMultiple(a,b);
 ArrayShow(c)]]
-function imP.tensor.MatrixMultiple(M1, M2, output)
+function imP.tensor.MatrixMultiple(M1, M2, output1, output2)
 	local row1 = #M1;
 	local column1 = #M1[1];
 	local row2 = #M2;
 	local column2 = #M2[1];
 	if column1 == row2 then
-		local self = zeros(row1, column2) or output;
+		local self = zeros(row1, column2) or output1;
 		for i = 1, row1 do
 			for j = 1, column2 do	
-				self[i][j] = ArraySum(DotProduct({M1[i]}, GetColumn(M2, j)));
+				self[i][j] = ArraySum(DotProduct({M1[i]}, GetColumn(M2, j, output2)));
 			end
 		end
 		return self;
@@ -632,7 +650,7 @@ function imP.tensor.MatrixMultiple(M1, M2, output)
 end
 local MatrixMultiple = imP.tensor.MatrixMultiple;
 
--- Determine of 2 or 3 dimensions martrix
+-- Determine of 2 or 3 dimensions Matrix
 --[[
 a={{1, 2},{4, 5}};
 b={{1, 2, 3},{4, 5, 6},{7, 8, 9}};
@@ -653,13 +671,13 @@ end
 local det = imP.tensor.det;
 
 
--- The Sub martrix which remove the i-th row and j-th column
+-- The Sub Matrix which remove the i-th row and j-th column
 --[[
 b={{1, 2, 3},{4, 5, 6},{7, 8, 9}};
 ArrayShow(b)
-ArrayShow(SubMartrix(b,1,0))
-ArrayShow(SubMartrix(b,2,2))]]
-function imP.tensor.SubMartrix(M, i, j)
+ArrayShow(SubMatrix(b,1,0))
+ArrayShow(SubMatrix(b,2,2))]]
+function imP.tensor.SubMatrix(M, i, j)
 	local row = #M;
 	local column = #M[1];
 	local self = zeros(row, column);
@@ -682,10 +700,10 @@ function imP.tensor.SubMartrix(M, i, j)
 	end
 	return self;
 end
-local SubMartrix = imP.tensor.SubMartrix;
+local SubMatrix = imP.tensor.SubMatrix;
 
 
--- Inverse Matrix of 2 or 3 dimensions martrix
+-- Inverse Matrix of 2 or 3 dimensions Matrix
 --[[
 a={{1, 2},{4, 5}};
 b={{1, 2, 3},{4, 5, 6},{7, 8, 10}};
@@ -695,15 +713,15 @@ function imP.tensor.inv(M, invM)
 	local row = #M;
 	local column = #M[1];
 	if(row == column) and(row == 2) then
-		local inv2 = ArrayMutl({{M[2][2], -M[1][2]}, {-M[2][1], M[1][1]}}, 1 / det(M));
+		local inv2 = ArrayMult({{M[2][2], -M[1][2]}, {-M[2][1], M[1][1]}}, 1 / det(M));
 		return inv2;
 	elseif(row == column) and (row == 3) then
 		local inv3 = zeros(3, 3) or invM;
 		local det3 = det(M);
 		for i = 1, 3 do
 			for j = 1, 3 do	
-				inv3[j][i] =(-1)^(i + j) * det(SubMartrix(M, i, j)) / det3;
-				--print(inv3[i][j], det(SubMartrix(M,i,j)),det3)
+				inv3[j][i] =(-1)^(i + j) * det(SubMatrix(M, i, j)) / det3;
+				--print(inv3[i][j], det(SubMatrix(M,i,j)),det3)
 			end
 		end
 		return inv3;
@@ -943,3 +961,98 @@ function  imP.tensor.gradient( m )
 end
 local gradient = imP.tensor.gradient;
 
+function imP.tensor.Spline(w, a)
+	local S;
+	local n = -0.5 or a;
+	local num = math.abs(w);
+	if num < 1 then
+		S = 1 - (n+3)*num^2 + (n+2)*num^3;
+	elseif num >=1 and num <=2 then
+		S = -4*n + 8*n*num - 5*n*num^2 - n*num^3;
+	else
+		S = 0
+	end
+	return S;
+end
+local Spline = imP.tensor.Spline;
+
+function imP.tensor.imresize(Image, outputsize)
+	local rows = #Image;
+	local cols = #Image[1];
+	local outputRows = math.floor(rows*outputsize + 0.5);
+	local outputCols = math.floor(cols*outputsize + 0.5);
+	local self = zeros(outputRows, outputCols);
+	local rowNew, colNew, u, v, m, n;
+	local A, B, C;
+	local output1 = zeros(1, 4);
+	local output2 = zeros(1, 1);
+	local output3 = zeros(1, 4);
+	local output4 = zeros(1, 4);
+
+	-- Extend the image
+	local Image0 = zeros(rows+6, cols+6);
+	for i = 4, rows + 3 do	
+		Image0[i][1] = Image[i-3][1];
+		Image0[i][2] = Image[i-3][2];
+		Image0[i][3] = Image[i-3][3];
+		Image0[i][cols+4] = Image[i-3][cols-2];
+		Image0[i][cols+5] = Image[i-3][cols-1];
+		Image0[i][cols+6] = Image[i-3][cols];
+		for j = 4, cols + 3 do
+			Image0[i][j] = Image[i-3][j-3];
+		end
+	end
+	for i = 4, cols + 3 do
+		Image0[1][i] = Image[1][i-3];
+		Image0[2][i] = Image[2][i-3];
+		Image0[3][i] = Image[3][i-3];
+		Image0[rows+4][i] = Image[rows-2][i-3];
+		Image0[rows+5][i] = Image[rows-1][i-3];
+		Image0[rows+6][i] = Image[rows][i-3];
+	end
+	for i = 1, 3 do
+		for j = 1, 3 do
+			Image0[i][j] = Image[i][j];
+			Image0[rows+3+i][j] = Image[rows+i-3][j];
+			Image0[i][cols+3+j] = Image[i][cols+j-3];
+			Image0[rows+3+i][cols+3+j] = Image[rows+i-3][cols+j-3];
+		end
+	end
+
+
+	for i = 1, outputRows do
+		for j = 1, outputCols do
+			rowNew = i*rows/outputRows;
+			colNew = j*cols/outputCols;
+			
+			m = math.floor(rowNew)+3;
+			n = math.floor(colNew)+3;
+			if m >= 2 and m <= rows + 6 and n >= 3 and n <= cols + 7 then
+--				u = rowNew - m + 2;
+--				v = colNew - n + 2;
+				--A = {{Spline(1+u), Spline(u), Spline(1-u), Spline(2-u)}};
+				A={{1,1,1,8}};
+				B = {{Image0[m-1][n-2], Image0[m][n-2], Image0[m+1][n-2], Image0[m+2][n-2]},
+					{Image0[m-1][n-1], Image0[m][n-1], Image0[m+1][n-1], Image0[m+2][n-1]},
+					{Image0[m-1][n], Image0[m][n], Image0[m+1][n], Image0[m+2][n]},
+					{Image0[m-1][n+1], Image0[m][n+1], Image0[m+1][n+1], Image0[m+2][n+1]}}
+				--C = {{Spline(1+v)}, {Spline(v)}, {Spline(1-v)}, {Spline(2-v)}};
+				C = {{1}, {1}, {1}, {8}};
+				local f = MatrixMultiple(MatrixMultiple(A, B, output1, output3), C, output2, output4);
+				self[i][j] = f[1][1];
+--				ArrayShow(A)
+--				print(u, v, rowNew, colNew)
+			end
+		end
+	end
+	local ImageMax = FindMax2(Image);
+	local ImageMin = FindMin2(Image);
+	local SelfMax = FindMax2(self);
+	local SelfMin = FindMin2(self);
+	self = ArrayMult(self, (ImageMax - ImageMin)/(SelfMax - SelfMin));
+	self = ArrayAdd(self, ImageMax - FindMax2(self));
+	self = Round(self);
+	return self;
+end
+local imresize = imP.tensor.imresize;
+			

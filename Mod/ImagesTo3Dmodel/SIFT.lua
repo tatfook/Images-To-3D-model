@@ -37,13 +37,13 @@ local DotProduct = imP.tensor.DotProduct;
 local ArraySum = imP.tensor.ArraySum;
 local ArrayShow = imP.tensor.ArrayShow;
 local ArrayShow3 = imP.tensor.ArrayShow3;
-local ArrayMutl = imP.tensor.ArrayMutl;
+local ArrayMult = imP.tensor.ArrayMult;
 local ArrayAdd = imP.tensor.ArrayAdd;
 local ArrayAddArray = imP.tensor.ArrayAddArray;
-local Array2Max = imP.tensor.Array2Max;
-local Array2Min = imP.tensor.Array2Min;
-local Array3Max = imP.tensor.Array3Max;
-local Array3Min = imP.tensor.Array3Min;
+local FindMax2 = imP.tensor.FindMax2;
+local FindMin2 = imP.tensor.FindMin2;
+local FindMax3 = imP.tensor.FindMax3;
+local FindMin3 = imP.tensor.FindMin3;
 local GetGaussian = imP.GetGaussian;
 local GaussianF = imP.GaussianF;
 local DoG = imP.DoG;
@@ -66,6 +66,8 @@ local transposition = imP.tensor.transposition;
 local norm = imP.tensor.norm;
 local dot = imP.tensor.dot;
 local mod = imP.tensor.mod
+local Spline = imP.tensor.Spline;
+local imresize = imP.tensor.imresize;
 ----------------------------------------------------
 local ceil = math.ceil;
 local fmod = math.fmod;
@@ -225,7 +227,7 @@ function SIFT.diffofg(L)
 		table.insert(D.octave,zeros3(S-1, M, N));
 
 		for s = 1, S-1 do
-			local minus_octave = ArrayMutl(L.octave[o][s], -1);
+			local minus_octave = ArrayMult(L.octave[o][s], -1);
 
 			D.octave[o][s] = ArrayAddArray(L.octave[o][s + 1], minus_octave);
 		end
@@ -252,7 +254,7 @@ function SIFT.DetermineLocalmax(octave, s, i, j, thresh, k)
 		a>octave[s + 1][i + 1][j] + k and a>octave[s + 1][i + 1][j + 1] + k and 
 		a>octave[s-1][i][j] + k and a>octave[s + 1][i][j] + k)
 		or
-		(a<thresh + k and 
+		(a<thresh - k and 
 		a<octave[s-1][i-1][j-1]-k and a<octave[s-1][i-1][j]-k and
 		a<octave[s-1][i-1][j + 1]-k and a<octave[s-1][i][j-1]-k and
 		a<octave[s-1][i][j + 1]-k and a<octave[s-1][i + 1][j-1]-k and 
@@ -302,7 +304,6 @@ function SIFT.extrafine(oframes, octave, smin, thresh, r)
 	local N = #octave[1][1];
 	local L = #oframes;
 	local K = #oframes[1];
-	local comp = 1;
 	local J = {{}, {}, {}};
 	local b = zeros(1, 3);
 	local x, y, s, val;
@@ -325,32 +326,34 @@ function SIFT.extrafine(oframes, octave, smin, thresh, r)
 			x = x + dx;
 			y = y + dy;
 			-- Compute the gridient
-			Dx = 0.5 * (octave[s][y][x + 1]-octave[s][y][x-1]);
-			Dy = 0.5 * (octave[s][y + 1][x]-octave[s][y-1][x]);
-			Ds = 0.5 * (octave[s + 1][y][x]-octave[s-1][y][x]);
+			Dx = 0.5 * (octave[s][x][y + 1]-octave[s][x][y-1]);
+			Dy = 0.5 * (octave[s][x + 1][y]-octave[s][x-1][y]);
+			Ds = 0.5 * (octave[s + 1][x][y]-octave[s-1][x][y]);
 			-- Compute the Hessian
-			Dxx = octave[s][y][x + 1] + octave[s][y][x-1]-2 * octave[s][y][x];
-			Dyy = octave[s][y + 1][x] + octave[s][y-1][x]-2 * octave[s][y][x];
-			Dss = octave[s + 1][y][x] + octave[s-1][y][x]-2 * octave[s][y][x];
+			Dxx = octave[s][x][y + 1] + octave[s][x][y-1]-2 * octave[s][x][y];
+			Dyy = octave[s][x + 1][y] + octave[s][x-1][y]-2 * octave[s][x][y];
+			Dss = octave[s + 1][x][y] + octave[s-1][x][y]-2 * octave[s][x][y];
 
-			Dys = 0.25 * (octave[s + 1][y + 1][x] + octave[s-1][y-1][x]-octave[s + 1][y-1][x]-octave[s-1][y + 1][x]);
-			Dxy = 0.25 * (octave[s][y + 1][x + 1] + octave[s][y-1][x-1]-octave[s][y-1][x + 1]-octave[s][y + 1][x-1]);
-			Dxs = 0.25 * (octave[s + 1][y][x + 1] + octave[s-1][y][x-1]-octave[s-1][y][x + 1]-octave[s + 1][y][x-1]);
+			Dys = 0.25 * (octave[s + 1][x + 1][y] + octave[s-1][x-1][y]-octave[s + 1][x-1][y]-octave[s-1][x + 1][y]);
+			Dxy = 0.25 * (octave[s][x + 1][y + 1] + octave[s][x-1][y-1]-octave[s][x-1][y + 1]-octave[s][x + 1][y-1]);
+			Dxs = 0.25 * (octave[s + 1][x][y + 1] + octave[s-1][x][y-1]-octave[s-1][x][y + 1]-octave[s + 1][x][y-1]);
 
 			A = {{Dxx, Dxy, Dxs}, {Dxy, Dyy, Dys}, {Dxs, Dys, Dss}};
 			b = {{-Dx, -Dy, -Ds}};
 			c = MatrixMultiple(b, inv(A, outputInvA), outputInvc);
+			--c = MatrixMultiple(b, inv(A));
+
 			-- If the translation of the keypoint is big, 
 			-- move the keypoint and re-interrate the computation.
 			-- Otherwise we are all set.
-			if(c[1][1] > 0.6 and x < N-2) then
+			if(c[1][1] > 0.6 and x < M-2) then
 				if(c[1][1] < -0.6 and x > 1) then
 					dx = 0;
 				else
 					dx = 1;
 				end
 			else
-				if(c[1][1] < 0.6 and x > 1) then
+				if(c[1][1] < -0.6 and x > 1) then
 					dx = -1;
 				else
 					dx = 0;
@@ -380,15 +383,14 @@ function SIFT.extrafine(oframes, octave, smin, thresh, r)
 		xn = x + c[1][1];
 		yn = y + c[1][2];
 		sn = s + c[1][3];
---		print(abs(val) > thresh , score < (r + 1) * (r + 1) / r ,score >= 0 , abs(c[1][1]) < 1.5 , abs(c[1][2]) < 1.5 ,abs(c[1][3]) < 1.5 , xn >= 0 , xn < M-1 , yn >=0 ,yn <= N-1 , sn >= 0 , sn <= S-1)
+		--print(abs(val) > thresh , score < (r + 1) * (r + 1) / r ,score >= 0 , abs(c[1][1]) < 1.5 , abs(c[1][2]) < 1.5 ,abs(c[1][3]) < 1.5 , xn >= 0 , xn < M-1 , yn >=0 ,yn <= N-1 , sn >= 0 , sn <= S-1)
 		if(abs(val) > thresh and score < (r + 1) * (r + 1) / r and
 		score >= 0 and abs(c[1][1]) < 1.5 and abs(c[1][2]) < 1.5 and
 		abs(c[1][3]) < 1.5 and xn >= 0 and xn < M-1 and yn >=0 and
 		yn <= N-1 and sn >= 0 and sn <= S-1) then
-			J[1][comp] = xn-1;
-			J[2][comp] = yn-1;
-			J[3][comp] = sn-1;
-			comp = comp + 1;
+			table.insert(J[1], xn-1)
+			table.insert(J[2], yn-1)
+			table.insert(J[3], sn-1)
 		end
 	end
 	return J;
@@ -421,7 +423,7 @@ function SIFT.orientation(oframes, octave, S, smin, sigma0)
 			for j = 1, N do 
 				magnitudes[si][i][j] = sqrt(gradient_x[i][j]^2 + gradient_y[i][j]^2);
 				if gradient_x[i][j] == 0 and gradient_y[i][j] ~= 0 then
-					angles[si][i][j] = mod(pi/2*gradient_y[i][j]/abs(gradient_y[i][j]) + 2 * pi, 2 *pi)
+					angles[si][i][j] = mod(gradient_y[i][j]/abs(gradient_y[i][j])*pi/2 + 2 * pi, 2 *pi)
 				elseif gradient_x[i][j] == 0 and gradient_y[i][j] == 0 then
 					angles[si][i][j] = 0;
 				else
@@ -441,30 +443,31 @@ function SIFT.orientation(oframes, octave, S, smin, sigma0)
 		y_round[i] = floor(oframes[2][i] + 0.5);
 		scales[i] = floor(oframes[3][i] + 0.5)-smin;
 	end
+	local sp,xp,yp,sigmaw,W,dx,dy,wincoef,bin,theta_max;
 	for p = 1, key_num do
-		local sp = scales[p];
-		local xp = x_round[p];
-		local yp = y_round[p];
-		local sigmaw = win_factor * sigma0 * (2^(sp / S));
-		local W = floor(3 * sigmaw);
+		sp = scales[p];
+		xp = x_round[p];
+		yp = y_round[p];
+		sigmaw = win_factor * sigma0 * (2^(sp / S));
+		W = floor(3 * sigmaw);
 		for xs = xp - max(W, xp-1), min((N-2),(xp + W)) do
 			for ys = yp - max(W, yp-1), min((M-2), yp + W) do
-				local dx = xs - x[p];
-				local dy = ys - y[p];
-				if dx^2 + dy^2 <= W^2 then 
-					local wincoef = exp(-(dx^2 + dy^2) / (2 * sigmaw^2));
-					local bin = floor(NBINS * angles[sp + 1][ys][xs] / (2 * pi) + 1);
-					histo[1][bin] = histo[1][bin] + wincoef * magnitudes[sp + 1][ys][xs];
+				dx = xs - x[p];
+				dy = ys - y[p];
+				if (dx^2 + dy^2 <= W^2 and xs > 0 and xs < M and ys>0 and ys < N and sp +1 > 0 and sp +1 < s_num) then 
+					wincoef = exp(-(dx^2 + dy^2) / (2 * sigmaw^2));
+					bin = floor(NBINS * angles[sp + 1][xs][ys] / (2 * pi) + 1);
+					histo[1][bin] = histo[1][bin] + wincoef * magnitudes[sp + 1][xs][ys];
 				end
 			end
 		end 
-		local theta_max = table.maxn(histo[1]);
+		theta_max = FindMax2(histo);
 		local theta_indx = {};
-		local theta_indx_count = 0;
+		local count = 0;
 		for i = 1, 36 do
-			if histo[1][i] > 0.8 * theta_max then
-				theta_indx_count = theta_indx_count + 1;
-				theta_indx[theta_indx_count] = histo[1][i];
+			if histo[1][i] >= 0.8 * theta_max then
+				table.insert(theta_indx, i);
+				count = count + 1;
 			end
 		end
 		for i = 1, #theta_indx do
@@ -576,7 +579,14 @@ function SIFT.descriptor(octave, oframes, sigma0, S, smin, magnif, NBP, NBO)
 			descriptor0[i][1] = descriptor[descriptor0_x][descriptor0_y][descriptor0_s];
 		end
 		local descriptor0Norm = norm(descriptor0);
-		descriptor0 = ArrayMutl(descriptor0, 1/descriptor0Norm, output);	
+		descriptor0 = ArrayMult(descriptor0, 1/descriptor0Norm, output);
+		for i = 1, NBP * NBP * NBO do
+			if descriptor0[i][1] > 0.2 then
+				descriptor0[i][1] = 0.2;
+			end
+		end
+		descriptor0Norm = norm(descriptor0);
+		descriptor0 = ArrayMult(descriptor0, 1/descriptor0Norm, output);
 		if p==1 then
 			descriptors = descriptor0;
 		elseif p>1 and descriptor0[1]~=nil then
@@ -594,7 +604,7 @@ function SIFT.DO_SIFT(I, O, S)
 	local O = 4;
 	local sigma0 = 1.6 * 2^(1 / S);
 	local sigman = 0.5;
-	local thresh = 0.1 / S; --0.01/S;
+	local thresh = 0.1 / S/2; --0.01/S;
 	local r = 18;
 	local NBP = 4;
 	local NBO = 8;
@@ -643,10 +653,16 @@ function SIFT.DO_SIFT(I, O, S)
 		local oframesOrientation = orientation(oframesExtrafined, scalespace.octave[o], scalespace.S, scalespace.smin, scalespace.sigma0);
 		-- Store frames
 		for i = 1, #oframesOrientation[1] do
-			frames[1][i] = 2^(o-1 + scalespace.omin) * oframesOrientation[1][i];
+			table.insert(frames[1], 2^(o-1 + scalespace.omin) * oframesOrientation[1][i]);
+			table.insert(frames[2], 2^(o-1 + scalespace.omin) * oframesOrientation[2][i]);
+			table.insert(frames[3], 2^(o-1 + scalespace.omin) * scalespace.sigma0 * 2^(oframesOrientation[3][i] / scalespace.S));
+			table.insert(frames[4], oframesOrientation[4][i]);
+
+
+			--[[frames[1][i] = 2^(o-1 + scalespace.omin) * oframesOrientation[1][i];
 			frames[2][i] = 2^(o-1 + scalespace.omin) * oframesOrientation[2][i];
 			frames[3][i] = 2^(o-1 + scalespace.omin) * scalespace.sigma0 * 2^(oframesOrientation[3][i] / scalespace.S);
-			frames[4][i] = oframesOrientation[4][i];
+			frames[4][i] = oframesOrientation[4][i];]]
 		end
 		LOG.std(nil,"debug","SIFT","SIFT: keypoints # %f after orientation computation", #oframesOrientation[1]);
 		-- Descriptors
@@ -669,45 +685,37 @@ distRatio: Only keep matches in which the ratio of vector angles from the
 Postprocessing: check each matching point, eliminate false matches by voting from
                 neighbouring area]]
 function SIFT.match(im1, des1, loc1, im2, des2, loc2)
-	local distRatio = 0.75;
+	local distRatio = 0.6;
 	local matched_points_im1 = {};
 	local match = {};
 	local des2t = transposition(des2);
 	local des_output = zeros(1, #des2);
 	for i = 1, #des1 do 
 		local dotprods = MatrixMultiple({des1[i]}, des2t, des_output);
---		print("aaaaaa")
---		ArrayShow(dotprods)
 		local SortDotprods = {};
 		local SortDotprods0 = {};
 		for j = 1, #dotprods[1] do
 			SortDotprods[j] = math.acos( dotprods[1][j] );
 			SortDotprods0[j] = math.acos( dotprods[1][j] );
+--			SortDotprods[j] = dotprods[1][j];
+--			SortDotprods0[j] = dotprods[1][j];
 		end
 --		ArrayShow({SortDotprods})
---		ArrayShow({SortDotprods0})
 		table.sort(SortDotprods);
---		ArrayShow({SortDotprods})
-		-- Find the index of first and second max values
-		local FirstIndex = 1;
---		print(SortDotprods[1], SortDotprods0[FirstIndex], FirstIndex)
-		while ( SortDotprods[1] ~= SortDotprods0[FirstIndex] ) 
-			do
-			FirstIndex = FirstIndex + 1;
-		end
-		-- local SecondIndex = 1;
-		-- while ( SortDotprods[2] ~= dotprods[1][SecondIndex] )
-		-- 	do SecondIndex = SecondIndex + 1;s
-		-- end
-		--print("+",SortDotprods[1],SortDotprods[2],SortDotprods0[1],SortDotprods0[2])
+		local FirstIndex = 1;	
+--		print(SortDotprods[1],SortDotprods[2],distRatio*SortDotprods[2],SortDotprods[1] < distRatio*SortDotprods[2])
 		if ( SortDotprods[1] < distRatio*SortDotprods[2] ) then
+			while ( SortDotprods[1] ~= SortDotprods0[FirstIndex] ) 
+				do
+				FirstIndex = FirstIndex + 1;
+			end
 			match[i] = FirstIndex;
 			table.insert(matched_points_im1, i)
 		else
 			match[i] = 0;
 		end
-		--print("=",match[i], FirstIndex,i)
 	end
+	--ArrayShow({matched_points_im1})
 	local dis_threshold = 0.3;
 	local orien_threshold = 0.3;
 	local num = 0;
@@ -727,10 +735,7 @@ function SIFT.match(im1, des1, loc1, im2, des2, loc2)
 		orien_diff_img1[k][k] = 0;
 		orien_diff_img2[k][k] = 0;
 		for j = k + 1, num do
-			print("++",matched_points_im1[k],matched_points_im1[j],#loc1, #loc1[1], num,#des1)
---			print("66",loc1[matched_points_im1[k]][1],loc1[matched_points_im1[j]][1],loc1[matched_points_im1[k]][2],loc1[matched_points_im1[j]][2] )
-			
-			  dis_img1[k][j] = sqrt((loc1[matched_points_im1[k]][1] - loc1[matched_points_im1[j]][1])^2 + (loc1[matched_points_im1[k]][2] - loc1[matched_points_im1[j]][2])^2);
+			dis_img1[k][j] = sqrt((loc1[matched_points_im1[k]][1] - loc1[matched_points_im1[j]][1])^2 + (loc1[matched_points_im1[k]][2] - loc1[matched_points_im1[j]][2])^2);
 			dis_img1[j][k] = dis_img1[k][j];
 
 			dis_img2[k][j] = sqrt((loc2[match[matched_points_im1[k]]][1] - loc2[match[matched_points_im1[j]]][1])^2 + (loc2[match[matched_points_im1[k]]][2] - loc2[match[matched_points_im1[j]]][2])^2);
@@ -740,17 +745,17 @@ function SIFT.match(im1, des1, loc1, im2, des2, loc2)
 			orien_diff_img1[k][j] = loc1[matched_points_im1[k]][4] - loc1[matched_points_im1[j]][4];
 			orien_diff_img1[j][k] = orien_diff_img1[k][j];
 
-			orien_diff_img2[k][j] = loc2[match[matched_points_im1[k]]][4] - loc2[match[matched_points_im1[k]]][4];
+			orien_diff_img2[k][j] = loc2[match[matched_points_im1[k]]][4] - loc2[match[matched_points_im1[j]]][4];
 			orien_diff_img2[j][k] = orien_diff_img2[k][j];
 		end
 	end
-	local dis_output = dis_img[1];
+	local dis_output = dis_img1[1];
 	for i = 1, num do
-		dis_img1[i] = ArrayMutl(dis_img1[i], 1/norm(dis_img1[i]), dis_output);
-		dis_img2[i] = ArrayMutl(dis_img2[i], 1/norm(dis_img2[i]), dis_output);
+		dis_img1[i] = ArrayMult(dis_img1[i], 1/norm(dis_img1[i]), dis_output);
+		dis_img2[i] = ArrayMult(dis_img2[i], 1/norm(dis_img2[i]), dis_output);
 
-		orien_diff_img1[i] = ArrayMutl(orien_diff_img1[i], 1/norm(orien_diff_img1[i]), dis_output);
-		orien_diff_img2[i] = ArrayMutl(orien_diff_img2[i], 1/norm(orien_diff_img2[i]), dis_output);
+		orien_diff_img1[i] = ArrayMult(orien_diff_img1[i], 1/norm(orien_diff_img1[i]), dis_output);
+		orien_diff_img2[i] = ArrayMult(orien_diff_img2[i], 1/norm(orien_diff_img2[i]), dis_output);
 	end
 
 	for i = 1, num do
@@ -766,6 +771,7 @@ function SIFT.match(im1, des1, loc1, im2, des2, loc2)
 				num_orein_diff_img2 = num_orein_diff_img2 + 1;
 			end
 		end
+		--print(dis_coherence,dis_threshold,orein_coherence,orien_threshold)
 		if (dis_coherence > dis_threshold) and ((orein_coherence > orien_threshold) or 
 			(num_orein_diff_img1 ==0 and num_orein_diff_img2 == 0)) then
 			final_match[1][matched_points_im1[i]] = 1;
