@@ -5,7 +5,7 @@ Date: 2017/7/19
 Desc: 
 use the lib:
 ------------------------------------------------------------
-NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua",true);
+NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
 local filename = "Mod/ImagesTo3Dmodel/lena.jpg";
 local Im = imP.imread(filename);
 local I = imP.rgb2gray(Im);
@@ -166,20 +166,24 @@ local rgb2gray = imP.rgb2gray;
 
 -- Creat the txt file of the array.
 function imP.CreatTXT(array, filename)	
-	local file = io.open(filename, "w");
-	local h = #(array);
-	if h ~= nil then
+	ParaIO.CreateDirectory(filename);
+	local file = ParaIO.open(filename, "w");
+	if(file:IsValid()) then
+		local h = #(array);
 		for j = 1, h do
 			local w = #(array[j]);
 			if w ~= nil then
 				for i = 1, w do
-					file:write(array[j][i], "\t");
+					file:WriteString(array[j][i].."\t");
 				end
 			end
-			file:write("\r");
+			file:WriteString("\r");
 		end
+		LOG.std(nil, "debug", "imP", "succesfullly written to %s with length %d", filename, h);
+		file:close();
+	else
+		LOG.std(nil, "warn", "imP", "unable to open file %s for writing", filename);
 	end
-	file:close();
 end
 local CreatTXT = imP.CreatTXT;
 
@@ -190,13 +194,13 @@ local CreatTXT = imP.CreatTXT;
 function imP.tensor.DotProduct(array1, array2, output)
 	local h = #(array1);
 	local w = #(array1[1]);
-	local array = output or zeros(h, w);
+	local output = output or zeros(h, w);
 	for i = 1, h do
 		for j = 1, w do
-			array[i][j] = array1[i][j] * array2[i][j];
+			output[i][j] = array1[i][j] * array2[i][j];
 		end
 	end
-	return array;
+	return output;
 end
 local DotProduct = imP.tensor.DotProduct;
 
