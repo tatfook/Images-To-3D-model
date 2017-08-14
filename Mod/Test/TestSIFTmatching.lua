@@ -72,7 +72,7 @@ local match = SIFT.match;
 --local Im2_filename = "Mod/ImagesTo3Dmodel/demo-data/2.JPG";
 
 local Im1_filename = "Mod/ImagesTo3Dmodel/demo-data/church3/1.JPG";
-local Im2_filename = "Mod/imagesto3dmodel/demo-data/church3/2.JPG";
+local Im2_filename = "Mod/ImagesTo3Dmodel/demo-data/church3/2.JPG";
 
 --local TXT1_filename = "D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/1.txt";
 --local TXT2_filename = "D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/2.txt";

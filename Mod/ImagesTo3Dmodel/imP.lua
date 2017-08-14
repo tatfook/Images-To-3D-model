@@ -143,7 +143,7 @@ function imP.imread(filename)
 		end
 		return array;
 	else
-		print("The file is not valid");
+		LOG.std(nil, "warn", "imP", "The file %s not found", filename);
 	end
 end
 local imread = imP.imread;
