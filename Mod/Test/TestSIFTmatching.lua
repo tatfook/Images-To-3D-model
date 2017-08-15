@@ -5,12 +5,14 @@ Date: 2017/8/4
 Desc: 
 use the lib:
 ------------------------------------------------------------
+NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua",true);
+NPL.load("(gl)Mod/ImagesTo3Dmodel/SIFT.lua",true);
 NPL.load("(gl)Mod/Test/TestSIFTmatching.lua",true);
 ------------------------------------------------------------
 ]]
 
-NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua",true);
-NPL.load("(gl)Mod/ImagesTo3Dmodel/SIFT.lua",true);
+NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
+NPL.load("(gl)Mod/ImagesTo3Dmodel/SIFT.lua");
 
 --[[local imP = commonlib.gettable("Mod.ImagesTo3Dmodel.imP");
 local tensor = commonlib.inherit(nil, commonlib.gettable("Mod.ImagesTo3Dmodel.imP.tensor"));
@@ -106,13 +108,10 @@ descr2 = transposition(descr2);
 
 frames1 = transposition(frames1);
 frames2 = transposition(frames2);
---ArrayShow(descr1)
---ArrayShow(descr2)
---print("xxxxxxxxxxxxxxxxxxxxx")
---ArrayShow(frames1);
---print("yyyyyyyyyyyyyyyyyyyyyyy")
---ArrayShow(frames2);
 
-local matches,num = match(I1, descr1, frames1, I2, descr2, frames2);
+
+local matches,num, loc1, loc2 = match(I1, descr1, frames1, I2, descr2, frames2);
 LOG.std(nil, "debug", "SIFT", "Matched points:# %f", matches);
 LOG.std(nil, "debug", "SIFT", "Matched points:# %f", num);
+ArrayShow(loc1);
+ArrayShow(loc2)

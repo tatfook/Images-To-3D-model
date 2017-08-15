@@ -6,10 +6,6 @@ Desc:
 use the lib:
 ------------------------------------------------------------
 NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
-local filename = "Mod/ImagesTo3Dmodel/lena.jpg";
-local Im = imP.imread(filename);
-local I = imP.rgb2gray(Im);
-imP.CreatTXT(I, "D:/University/SOC2017/LuaCode/lena.txt")
 ------------------------------------------------------------
 ------------------------------------------------------------
 local zeros = imP.tensor.zeros;

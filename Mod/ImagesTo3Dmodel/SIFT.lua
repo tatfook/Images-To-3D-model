@@ -783,6 +783,16 @@ function SIFT.match(im1, des1, loc1, im2, des2, loc2)
 			num_final_match = num_final_match + 1;
 		end
 	end
-	return num_final_match, num;
+	local locations1 = {{},{}};
+	local locations2 = {{},{}};
+	for i = 1, #des1 do
+		if (match[i] > 0) then
+			table.insert(locations1[1], loc1[i][1]);
+			table.insert(locations1[2], loc1[i][2]);
+			table.insert(locations2[1], loc1[match[i]][1]);
+			table.insert(locations2[2], loc1[match[i]][2]);
+		end
+	end
+	return num_final_match, num, locations1, locations2;
 end
 local match = SIFT.match;
