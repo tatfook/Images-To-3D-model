@@ -110,7 +110,7 @@ frames1 = transposition(frames1);
 frames2 = transposition(frames2);
 
 
-local matches,num, loc1, loc2 = match(I1, descr1, frames1, I2, descr2, frames2);
+local matches,num, loc1, loc2 = match(I_O1, descr1, frames1, I_O2, descr2, frames2);
 LOG.std(nil, "debug", "SIFT", "Matched points:# %f", matches);
 LOG.std(nil, "debug", "SIFT", "Matched points:# %f", num);
 ArrayShow(loc1);

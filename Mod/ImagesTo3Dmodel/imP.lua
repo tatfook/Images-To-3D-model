@@ -51,6 +51,8 @@ local mod = imP.tensor.mod;
 local gradient = imP.tensor.gradient;
 local Spline = imP.tensor.Spline;
 local imresize = imP.tensor.imresize;
+local mean = imP.tensor.mean;
+local diag = imP.tensor.diag;
 
 ------------------------------------------------------------
 ]]
@@ -203,23 +205,23 @@ local DotProduct = imP.tensor.DotProduct;
 
 -- Here the array is matrix. Sum each elements of the array.
 function imP.tensor.ArraySum(array)
-	local h = #(array);
-	local w = #(array[1]);
 	local sum = 0;
-	for i = 1, h do
-		for j = 1, w do 
-			sum = sum + array[i][j];
+	if type(array[1]) == "number" then
+		for i = 1, #array do
+			sum = sum + array[i];
 		end
+	elseif (type(array[1]) == "table" and type(array[1][1]) == "number") then
+		for i = 1, #array do
+			for j = 1, #array[1] do 
+				sum = sum + array[i][j];
+			end
+		end
+	else
+		LOG.std(nil,"warn","imP","unexpected array type");
 	end
 	return sum;
 end
 local ArraySum = imP.tensor.ArraySum;
--- array1={{1,2,3},{4,5,6},{7,8,9}};
--- array2={{1,2,3},{4,5,6},{7,8,9}};
--- array=DotProduct(array1,array2);
--- sum=ArraySum(array);
--- print(sum)
-
 
 -- Show the each element of the array.
 function imP.tensor.ArrayShowE(array)
@@ -258,7 +260,7 @@ function imP.tensor.ArrayMult(array, n, output)
 	if type(array[1]) == "table" then
 		local h = #(array);
 		local w = #(array[1]);
-		local array2_o = zeros(h, w) or output;
+		local array2_o = output or zeros(h, w);
 		for i = 1, h do
 			for j = 1, w do
 				array2_o[i][j] = array[i][j] * n;
@@ -266,7 +268,7 @@ function imP.tensor.ArrayMult(array, n, output)
 		end
 		return array2_o;
 	else 
-		local array1_o = {} or output;
+		local array1_o = output or {};
 		for i = 1, #array do
 			array1_o[i] = array[i]*n;
 		end
@@ -294,19 +296,19 @@ local ArrayAdd = imP.tensor.ArrayAdd;
 
 
 -- Two having same heigth and width array add
-function imP.tensor.ArrayAddArray(array1, array2)
+function imP.tensor.ArrayAddArray(array1, array2, output)
 	local h1 = #(array1);
 	local w1 = #(array1[1]);
 	local h2 = #(array2);
 	local w2 = #(array2[1]);
 	if(h1==h2 and w1==w2) then
-		local array = zeros(h1, w1);
+		local output = output or zeros(h1, w1);
 		for i = 1, h1 do
 			for j = 1, w1 do
-				array[i][j] = array1[i][j] + array2[i][j];
+				output[i][j] = array1[i][j] + array2[i][j];
 			end
 		end
-		return array;
+		return output;
 	end
 end
 local ArrayAddArray = imP.tensor.ArrayAddArray;
@@ -376,11 +378,6 @@ function imP.tensor.FindMin3(array)
 	return min;
 end
 local FindMin3 = imP.tensor.FindMin3;
--- a={{{1,2,3},{1,2,3},{1,2,3}},{{1,2,3},{1,2,3},{1,2,3}},{{1,2,3},{1,2,3},{1,2,3}}};
--- print(FindMin3(a),FindMax3(a))
--- b={{1,2,3},{1,2,3},{1,2,3}};
--- print(FindMin2(b),FindMax2(b))
-
 
 -- Get the Gaussian nucleus from the window size(wsize) and the sigma(sig).
 function imP.GetGaussian(sig)
@@ -528,7 +525,7 @@ function imP.tensor.conv2(A, B, output)
 	local wsize = #(B[1])
 	local d = math.floor(hsize / 2);
 	local u = math.floor(wsize / 2);
-	local N = zeros(h, w) or output;
+	local N = output or zeros(h, w);
 	local M = zeros(hsize, wsize);
 	for i = 1 + d, h - d do
 		for j = 1 + u, w - u do
@@ -543,12 +540,6 @@ function imP.tensor.conv2(A, B, output)
 	return N;
 end
 local conv2 = imP.tensor.conv2;
--- C={{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5}};
--- B={{1,2,3},{4,5,6},{7,8,9}};
--- D={{-1,2,-1}};E={{-1},{2},{-1}};
--- a=conv2(C,E);
--- ArrayShow(a);
-
 
 -- Comput 2 Dimension matrix determinant.
 function imP.tensor.Det2(array)
@@ -620,7 +611,7 @@ local HarrisCD = imP.HarrisCD;
 
 --Get a column in a Matrix
 function imP.tensor.GetColumn(M, column, output)
-	local self = zeros(1, #M) or output;
+	local self = output or zeros(1, #M);
 	for i = 1, #M do
 		self[1][i] = M[i][column];
 	end
@@ -639,7 +630,7 @@ function imP.tensor.MatrixMultiple(M1, M2, output1, output2)
 	local row2 = #M2;
 	local column2 = #M2[1];
 	if column1 == row2 then
-		local self = zeros(row1, column2) or output1;
+		local self = output1 or zeros(row1, column2);
 		for i = 1, row1 do
 			for j = 1, column2 do	
 				self[i][j] = ArraySum(DotProduct({M1[i]}, GetColumn(M2, j, output2)));
@@ -1040,8 +1031,6 @@ function imP.tensor.imresize(Image, outputsize)
 				C = {{1}, {1}, {1}, {8}};
 				local f = MatrixMultiple(MatrixMultiple(A, B, output1, output3), C, output2, output4);
 				self[i][j] = f[1][1];
---				ArrayShow(A)
---				print(u, v, rowNew, colNew)
 			end
 		end
 	end
@@ -1055,4 +1044,32 @@ function imP.tensor.imresize(Image, outputsize)
 	return self;
 end
 local imresize = imP.tensor.imresize;
-			
+
+function imP.tensor.mean( array )
+	local self;
+	if type(array[1]) == "number" then
+		self = ArraySum(array)/#array;
+	elseif type(array[1]) == "table" and type(array[1][1]) == "number" then
+		self = {};
+		for i = 1, #array do
+			self[i] = ArraySum({array[i]})/#array[i];
+		end
+	else 
+		LOG.std(nil,"warn","imP","unexpected array table")
+	end
+	return self;
+end
+local mean = imP.tensor.mean;
+
+function imP.tensor.diag( array )
+	if type(array) == "table" and type(array[1]) == "number" then
+		local self =zeros(#array, #array);
+		for i = 1, #array do
+			self[i][i] = array[i];
+		end
+		return self;
+	else
+		LOG.std(nil,"warn","imP","unexpected array type");
+	end
+end
+local diag = imP.tensor.diag;
