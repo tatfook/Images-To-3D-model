@@ -62,6 +62,10 @@ local mean = imP.tensor.mean;
 local diag = imP.tensor.diag;
 
 ------------------------------------------------------------
+local DO_SIFT = SIFT.DO_SIFT;
+local match = SIFT.match;
+------------------------------------------------------------
+
 function SFM.MatchFeaturePoints( I1, I2 )
 	local frames1, descr1, gss1, dogss1 = DO_SIFT(I1);
 	local frames2, descr2, gss2, dogss2 = DO_SIFT(I2);
