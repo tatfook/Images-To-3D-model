@@ -48,6 +48,7 @@
     <None Include="Mod\ImagesTo3Dmodel\imP.lua" />
     <None Include="Mod\ImagesTo3Dmodel\SFM.lua" />
     <None Include="Mod\ImagesTo3Dmodel\SIFT.lua" />
+    <None Include="Mod\ImagesTo3Dmodel\SVD.lua" />
     <None Include="Mod\Test\TestCreatTXT.lua" />
     <None Include="Mod\Test\TestimP.lua" />
     <None Include="Mod\Test\TestSIFT.lua" />

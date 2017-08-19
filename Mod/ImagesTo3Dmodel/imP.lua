@@ -54,6 +54,8 @@ local imresize = imP.tensor.imresize;
 local mean = imP.tensor.mean;
 local diag = imP.tensor.diag;
 local eye = imP.tensor.eye;
+local sign = imP.tensor.sign;
+local triu = imP.tensor.triu;
 
 ------------------------------------------------------------
 ]]
@@ -893,7 +895,7 @@ function imP.tensor.norm(array)
 		for i = 1, #array do
 			self = self + (array[i][1])^2;
 		end
-	else
+	elseif type(array[1]) == "number" then
 		for j = 1, #array do
 			self = self + (array[j])^2;
 		end
@@ -1085,3 +1087,36 @@ function imP.tensor.eye( n, output )
 	return output;
 end
 local eye = imP.tensor.eye;
+
+--sign function
+function imP.tensor.sign( x )
+	if x > 0 then
+		return 1;
+	elseif x < 0 then
+		return -1;
+	else
+		return 0;
+	end
+end
+local sign = imP.tensor.sign;
+
+--Upper triangular part of matrix
+function imP.tensor.triu( Array, n, output )
+	local n = n or 0;
+	local output = output or zeros(#Array, #Array[1]);
+	local count = 1 + n;
+	local t;
+	for i = 1, #Array do
+		if count >= 1 then
+			t = count;
+		else
+			t = 1;
+		end
+		for j = t, #Array[1] do
+			output[i][j] = Array[i][j];
+		end
+		count = count + 1;
+	end
+	return output;
+end
+local triu = imP.tensor.triu;
