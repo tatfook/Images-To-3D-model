@@ -53,6 +53,7 @@ local Spline = imP.tensor.Spline;
 local imresize = imP.tensor.imresize;
 local mean = imP.tensor.mean;
 local diag = imP.tensor.diag;
+local eye = imP.tensor.eye;
 
 ------------------------------------------------------------
 ]]
@@ -190,15 +191,25 @@ local CreatTXT = imP.CreatTXT;
 -- Array dot product.
 -- @param output: inout result of a1*a2. if nil, a new array is created
 function imP.tensor.DotProduct(array1, array2, output)
-	local h = #(array1);
-	local w = #(array1[1]);
-	local output = output or zeros(h, w);
-	for i = 1, h do
-		for j = 1, w do
-			output[i][j] = array1[i][j] * array2[i][j];
+	if type(array1[1]) == "number" then
+		local output = output or {};
+		for i = 1, #array1 do
+			output[i] = array1[i]*array2[i];
 		end
+		return output;
+	elseif type(array1[1]) == "table" and type(array1[1][1]) == "number" then	
+		local h = #(array1);
+		local w = #(array1[1]);
+		local output = output or zeros(h, w);
+		for i = 1, h do
+			for j = 1, w do
+				output[i][j] = array1[i][j] * array2[i][j];
+			end
+		end
+		return output;
+	else
+		LOG.std(nil,"warn","imP","unexpected array type");
 	end
-	return output;
 end
 local DotProduct = imP.tensor.DotProduct;
 
@@ -794,21 +805,12 @@ local subvector = imP.tensor.subvector;
 
 --截取matrix中一部分
 function imP.tensor.submatrix(matrix, a, b, c, d)
-	if a==nil then
-		a = 1;
-	end	
-	if b==nil then
-		m = #matrix;
-	end	
-	if c==nil then
-		c = 1;
-	end	
-	if d==nil then
-		d = #matrix[1];
-	end	
-	local subm = {};
+	local a = a or 1;
+	local b = b or #matrix;
+	local c = c or 1;
+	local d = d or #matrix[1];
+	local subm = output or zeros(b-a+1, d-c+1);
 	for i = 1, b-a + 1 do
-		subm[i] = {}
 		for j = 1, d-c + 1 do 
 			subm[i][j] = matrix[i-1 + a][j - 1 + c];
 		end
@@ -1073,3 +1075,13 @@ function imP.tensor.diag( array )
 	end
 end
 local diag = imP.tensor.diag;
+
+--Creat a unit Matrix which size is n
+function imP.tensor.eye( n, output )
+	local output = output or zeros(n, n);
+	for i = 1, n do
+		output[i][i] = 1;
+	end
+	return output;
+end
+local eye = imP.tensor.eye;
