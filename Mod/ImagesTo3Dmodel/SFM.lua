@@ -16,6 +16,8 @@ local NormalizePoints = SFM.NormalizePoints;
 ]]
 NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
 NPL.load("(gl)Mod/ImagesTo3Dmodel/SIFT.lua");
+NPL.load("(gl)Mod/ImagesTo3Dmodel/SVD.lua");
+
 local SFM = commonlib.gettable("SFM");
 
 ------------------------------------------------------------
@@ -68,6 +70,9 @@ local diag = imP.tensor.diag;
 ------------------------------------------------------------
 local DO_SIFT = SIFT.DO_SIFT;
 local match = SIFT.match;
+------------------------------------------------------------
+local QRDecompositionHouse = SVD.QRDecompositionHouse;
+local DO_SVD = SVD.DO_SVD;
 ------------------------------------------------------------
 
 function SFM.MatchFeaturePoints( I1, I2 )
@@ -173,9 +178,23 @@ function SFM.EightPoint( points1homo, points2homo )
 		m[9][i] = 1;
 	end
 	m = transposition(m);
-	
-
-
+	local um, sm, vm = DO_SVD(m);
+	local f = zeros(3, 3);
+	for i = 1, 3 do
+		for j = 1, 3 do
+			f[i][j] = vm[3*(i-1)+j][#vm];
+		end
+	end
+	local u, s, v = DO_SVD(f);
+	s[#s][#s[1]] = 0;
+	f = MatrixMultiple(MatrixMultiple(u, s), transposition(v));
+	f = MatrixMultiple(MatrixMultiple(transposition(t2), s), t1);
+	local uf, sf, vf = DO_SVD(f);
+	f = ArrayMult(f, 1/FindMax2(sf));
+	if f[#f][#f[1]] < 0 then
+		f = ArrayMult(f, -1);
+	end
+	return f;
 end
 
 function SFM.MSAC(points1, points2)

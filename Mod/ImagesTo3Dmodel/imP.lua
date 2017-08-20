@@ -1072,9 +1072,9 @@ function imP.tensor.diag( array )
 			self[i][i] = array[i];
 		end
 		return self;
-	elseif type(array) == "table" and type(array[1]) == "table" and #array == #array[1] then
+	elseif type(array) == "table" and type(array[1]) == "table" then
 		local self = {};
-		for i = 1, #array do
+		for i = 1, math.min(#array, #array[1]) do
 			self[i] = array[i][i];
 		end
 		return self;

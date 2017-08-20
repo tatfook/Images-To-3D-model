@@ -32,14 +32,31 @@ local ArrayMult = imP.tensor.ArrayMult;
 local ArrayAddArray = imP.tensor.ArrayAddArray;
 local triu = imP.tensor.triu;
 local diag = imP.tensor.diag;
+local FindMax2 = imP.tensor.FindMax2;
 
 ------------------------------------------------------------
 --@para: QR decomposition algorithm by Gram-Schmidt method
 function SVD.QRDecompositionSch( A )
-	local m = #A;
-	local n = #A[1];
-	if m ~= n then
-		LOG.str(nil,"warn","SVD","unexpect input Array");
+	local row = #A;
+	local col = #A[1];
+	if row > col then
+		--LOG.str(nil,"warn","SVD","unexpect input Array");
+		for i = 1, m do
+			for j = 1, m-n do
+				table.insert(A[i], 0);
+			end
+		end
+		m = #A;
+		n = #A[1];
+	elseif col > row then
+		for i = n+1, m do
+			table.insert(A, {});
+			for j = 1, m do
+				table.insert(A[i], 0);
+			end
+		end
+		m = #A;
+		n = #A[1];
 	end
 	local Q = zeros(m, n);
 	local R = zeros(n, n);
@@ -61,13 +78,34 @@ function SVD.QRDecompositionSch( A )
 			end
 		end
 	end
+	Q = submatrix(Q, 1, row, 1, row);
+	R = submatrix(R, 1, row, 1, col);
 	return Q, R;
 end
 local QRDecompositionSch = SVD.QRDecompositionSch;
 --@para: QR decomposition algorithm by Householder method
 function SVD.QRDecompositionHouse( A )
-		local m = #A;
-	local n = #A[1];
+	local row = #A;
+	local col = #A[1];
+	if row > col then
+		--LOG.str(nil,"warn","SVD","unexpect input Array");
+		for i = 1, row do
+			for j = col+1, row do
+				table.insert(A[i], 0);
+			end
+		end
+		m = #A;
+		n = #A[1];
+	elseif col > row then
+		for i = row+1, col do
+			table.insert(A, {});
+			for j = 1, col do
+				table.insert(A[i], 0);
+			end
+		end
+		m = #A;
+		n = #A[1];
+	end
 	local E = eye(n);
 	local R = zeros(n, n);
 	local P1 = eye(n);
@@ -92,11 +130,13 @@ function SVD.QRDecompositionHouse( A )
 		P = ArrayAddArray(E, ArrayMult(MatrixMultiple(transposition(w),w), -2));
 		A = MatrixMultiple(P, A);
 		P1 = MatrixMultiple(P, P1);
-		for j = 1, n do 
+		for j = 1, n do
 			R[j][n] = A[j][n];
 		end
 	end
 	Q = transposition(P1);
+	Q = submatrix(Q, 1, row, 1, row);
+	R = submatrix(R, 1, row, 1, col);
 	return Q, R;
 end
 local QRDecompositionHouse = SVD.QRDecompositionHouse;
@@ -124,8 +164,9 @@ function SVD.DO_SVD( A )
 	local ss = diag(S);
 	local ssn;
 	S = zeros(#A, #A[1]);
-	for n = 1, math.max(#A, #A[1]) do
+	for n = 1, #ss do
 		ssn = ss[n];
+		print()
 		S[n][n] = math.abs(ssn);
 		if ssn < 0 then
 			for i = 1, #A do
