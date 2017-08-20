@@ -1,5 +1,5 @@
 --[[
-Title: SIFT
+Title: SFM
 Author(s): BerryZSZ
 Date: 2017/8/15
 Desc: 
@@ -8,6 +8,10 @@ use the lib:
 NPL.load("(gl)Mod/ImagesTo3Dmodel/SFM.lua");
 ------------------------------------------------------------
 ------------------------------------------------------------
+local MatchFeaturePoints = SFM.MatchFeaturePoints;
+local randperm = SFM.randperm;
+local NormalizePoints = SFM.NormalizePoints;
+
 ------------------------------------------------------------
 ]]
 NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
@@ -156,7 +160,21 @@ function SFM.EightPoint( points1homo, points2homo )
 	local num = #points1homo[1];
 	local points1homo, t1 = NormalizePoints(points1homo, 2);
 	local points2homo, t2 = NormalizePoints(points2homo, 2);
-	local m = zeros(num, 9)
+	local m = zeros(9, num);
+	m[1] = DotProduct(points1homo[1], points2homo[1]);
+	m[2] = DotProduct(points2homo[2], points2homo[1]);
+	m[3] = points2homo[1];
+	m[4] = DotProduct(points1homo[1], points2homo[2]);
+	m[5] = DotProduct(points1homo[2], points2homo[2]);
+	m[6] = points2homo[2];
+	m[7] = points1homo[1];
+	m[8] = points1homo[2];
+	for i = 1, num do
+		m[9][i] = 1;
+	end
+	m = transposition(m);
+	
+
 
 end
 
