@@ -8,6 +8,9 @@ use the lib:
 NPL.load("(gl)Mod/ImagesTo3Dmodel/SVD.lua");
 ------------------------------------------------------------
 ------------------------------------------------------------
+local QRDecompositionSch = SVD.QRDecompositionSch;
+local QRDecompositionHouse = SVD.QRDecompositionHouse;
+local DO_SVD = SVD.DO_SVD;
 
 ------------------------------------------------------------
 ]]
@@ -27,6 +30,8 @@ local sign = imP.tensor.sign;
 local submatrix = imP.tensor.submatrix;
 local ArrayMult = imP.tensor.ArrayMult;
 local ArrayAddArray = imP.tensor.ArrayAddArray;
+local triu = imP.tensor.triu;
+local diag = imP.tensor.diag;
 
 ------------------------------------------------------------
 --@para: QR decomposition algorithm by Gram-Schmidt method
@@ -58,7 +63,7 @@ function SVD.QRDecompositionSch( A )
 	end
 	return Q, R;
 end
-
+local QRDecompositionSch = SVD.QRDecompositionSch;
 --@para: QR decomposition algorithm by Householder method
 function SVD.QRDecompositionHouse( A )
 		local m = #A;
@@ -102,12 +107,32 @@ function SVD.DO_SVD( A )
 	local U = eye(#A);
 	local S = transposition(A);
 	local V = eye(#A[1]);
-	local Q, e;
+	local Q, e, E, F;
 	while loopcount < loopmax do
 		Q, S = QRDecompositionHouse(transposition(S));
 		U = MatrixMultiple(U, Q);
 		Q, S = QRDecompositionHouse(transposition(S));
 		V = MatrixMultiple(V, Q);
-		e = 
-
+		e = triu(A);
+		E = math.sqrt(ArraySum(DotProduct(e, e)));
+		F = math.sqrt(ArraySum(DotProduct(diag(S), diag(S))));
+		if F == 0 then
+			F = 1;
+		end
+		loopcount = loopcount + 1;
+	end
+	local ss = diag(S);
+	local ssn;
+	S = zeros(#A, #A[1]);
+	for n = 1, math.max(#A, #A[1]) do
+		ssn = ss[n];
+		S[n][n] = math.abs(ssn);
+		if ssn < 0 then
+			for i = 1, #A do
+				U[i][n] = -U[i][n];
+			end
+		end
+	end
+	return U, S, V;
 end
+local DO_SVD = SVD.DO_SVD;

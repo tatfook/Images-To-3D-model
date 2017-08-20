@@ -1072,6 +1072,12 @@ function imP.tensor.diag( array )
 			self[i][i] = array[i];
 		end
 		return self;
+	elseif type(array) == "table" and type(array[1]) == "table" and #array == #array[1] then
+		local self = {};
+		for i = 1, #array do
+			self[i] = array[i][i];
+		end
+		return self;
 	else
 		LOG.std(nil,"warn","imP","unexpected array type");
 	end
