@@ -38,9 +38,9 @@ local FindMax2 = imP.tensor.FindMax2;
 --@para: QR decomposition algorithm by Gram-Schmidt method
 function SVD.QRDecompositionSch( A )
 	local row = #A;
-	local col = #A[1];
-	if row > col then
-		--LOG.str(nil,"warn","SVD","unexpect input Array");
+	local col = #(A[1]);
+	if (row > col) then
+		--LOG.std(nil,"warn","SVD","unexpect input Array");
 		for i = 1, m do
 			for j = 1, m-n do
 				table.insert(A[i], 0);
@@ -88,19 +88,19 @@ function SVD.QRDecompositionHouse( A )
 	local row = #A;
 	local col = #A[1];
 	if row > col then
-		--LOG.str(nil,"warn","SVD","unexpect input Array");
+		--LOG.std(nil,"warn","SVD","unexpect input Array");
 		for i = 1, row do
 			for j = col+1, row do
-				table.insert(A[i], 0);
+				A[i][j] = 0;
 			end
 		end
 		m = #A;
 		n = #A[1];
 	elseif col > row then
 		for i = row+1, col do
-			table.insert(A, {});
+			A[#A+1] = {};
 			for j = 1, col do
-				table.insert(A[i], 0);
+				A[i][j] = 0;
 			end
 		end
 		m = #A;
@@ -137,6 +137,7 @@ function SVD.QRDecompositionHouse( A )
 	Q = transposition(P1);
 	Q = submatrix(Q, 1, row, 1, row);
 	R = submatrix(R, 1, row, 1, col);
+	
 	return Q, R;
 end
 local QRDecompositionHouse = SVD.QRDecompositionHouse;
@@ -166,7 +167,6 @@ function SVD.DO_SVD( A )
 	S = zeros(#A, #A[1]);
 	for n = 1, #ss do
 		ssn = ss[n];
-		print()
 		S[n][n] = math.abs(ssn);
 		if ssn < 0 then
 			for i = 1, #A do
@@ -174,6 +174,5 @@ function SVD.DO_SVD( A )
 			end
 		end
 	end
-	return U, S, V;
 end
 local DO_SVD = SVD.DO_SVD;
