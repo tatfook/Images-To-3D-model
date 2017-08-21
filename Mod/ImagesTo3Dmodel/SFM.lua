@@ -95,20 +95,25 @@ function SFM.randperm(n, k)
 	local self = zeros(1, k);
 	self[1][1] = math.random(1, n);
 	for i = 2, k do
-		repeat
+		local bIsDetermined = true;
+		while(bIsDetermined) do
 			self[1][i] = math.random(1, n);
-			local determine = self[1][i] ~= self[1][1];
+			bIsDetermined = self[1][i] ~= self[1][1];
 			local j = 1;
-			while(determine == true and j<i) do
-				determine = determine and self[1][i] ~= self[1][j];
+			while(bIsDetermined and j<i) do
+				bIsDetermined = bIsDetermined and self[1][i] ~= self[1][j];
 				j = j + 1;
 			end
-		until(determine == true)
+		end
 	end
 	return self;
 end
 local randperm = SFM.randperm;
 
+
+local tmpArray = {};
+
+-- this function is thread-safe.  this function is NOT reentrant. 
 function SFM.NormalizePoints( p, numDims )
 	local points = {};
 	local pointsLength = #p[1];
@@ -127,7 +132,8 @@ function SFM.NormalizePoints( p, numDims )
 	local points = DotProduct(points, points);
 	local SumPoints = {points[1]};
 	for i = 2, numDims do
-		SumPoints = ArrayAddArray(SumPoints, {points[i]}, SumPoints);
+		tmpArray[1] = {points[i]}
+		SumPoints = ArrayAddArray(SumPoints, tmpArray, SumPoints);
 	end
 	for i = 1, pointsLength do
 		SumPoints[1][i] = math.sqrt(SumPoints[1][i]);
