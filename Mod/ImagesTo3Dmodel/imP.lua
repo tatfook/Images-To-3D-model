@@ -850,6 +850,19 @@ function imP.tensor.connect(A, B)
 			end
 		end
 		return self;
+	elseif column1 == column2 then
+		local self = zeros(row1 + row2, column1);
+		for i = 1, row1 + row2 do
+			for j = column1 do
+				if i <= row1 then
+					self[i][j] = A[i][j];
+				elseif i > row1 then
+					self[i][j] = B[i-row1][j];
+				end
+			end
+		end
+		return self;
+	end
 	end
 end
 local connect = imP.tensor.connect;

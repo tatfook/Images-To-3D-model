@@ -85,7 +85,7 @@ function SFM.MatchFeaturePoints( I1, I2 )
 	frames1 = transposition(frames1);
 	frames2 = transposition(frames2);
 
-	local matches,num, mp1, mp2 = match(I1, descr1, frames1, I2, descr2, frames2);
+	local matches, num, mp1, mp2 = match(I1, descr1, frames1, I2, descr2, frames2);
 	return mp1, mp2;
 end
 local MatchFeaturePoints = SFM.MatchFeaturePoints;
@@ -278,10 +278,81 @@ function SFM.MSAC(points1, points2)
 			EightPoint2[3][i] = points2homo[3][bestInliers[1][i]];
 	end 
 	f = EightPoint(EightPoint1, EightPoint2);
-	return f, bestInliers;
+	return f, bestInliers[1];
 end
 local MSAC = SFM.MSAC;
 
+function SFM.MotionFromF( F, intrinsic, inliers1, inlires2 )
+	local E = MatrixMultiple(MatrixMultiple(intrinsic, F), transposition(intrinsic));
+	--decompose E
+	local U, D, V = DO_SVD(E);
+	local e = (D[1][1] + D[2][2])/2;
+	D[1][1] = e;
+	D[2][2] = e;
+	D[3][3] = 0;
+	E = MatrixMultiple(MatrixMultiple(U, D), transposition(V));
+	local U, D1, V = DO_SVD(E);
+	local W = {{0, -1, 0}, {1, 0, 0}, {0, 0, 1}};
+	local Z = {{0, 1, 0}, {-1, 0, 0}, {0, 0 ,0}};
+	local R1 = MatrixMultiple(MatrixMultiple(U, W), transposition(V));
+	local R2 = MatrixMultiple(MatrixMultiple(U, transposition(W)), transposition(V));
+	if det(R1) < 0 then
+		R1 = ArrayMult(R1, -1);
+	end
+	if det(R2) < 0 then
+		R2 = ArrayMult(R2, -1);
+	end
+	local Tx = MatrixMultiple(MatrixMultiple(U, Z), transposition(U));
+	local t = {{-Tx[3][2], - Tx[1][3], -Tx[2][1]}};
+	local R = transposition(R1);
+
+	--choose solution
+	local negs = zeros(1, 4);
+	local nInliers = #inliers1;
+	local camMat0 = transposition(MatrixMultiple({{1, 0, 0},{0, 1, 0},{0, 0, 1},{0, 0, 0}}, intrinsic);
+	local M1 = submatrix(camMat0, 1, 3, 1, 3);
+	local c1 = ArrayMult(MatrixMultiple(inv(M1), submatrix(camMat0, 1, #camMat0, 4,4)), -1);
+	local camMatl, M2, c2, a1, a2, A, alpha, p, m1, m2;
+	local Matrix_one = {{1}};
+	for i = 1, 4 do
+		if i > 2 then
+			R = transposition(R2);
+		end
+		t = ArrayMult(t, -1);
+		camMatl = transposition(MatrixMultiple(connect(R, t), intrinsic));
+		M2 = submatrix(camMatl, 1, 3, 1, 3);
+		c2 = ArrayMult(MatrixMultiple(inv(M2), submatrix(camMatl, 1, #camMatl, 4,4)), -1);
+		for j = nInliers do
+			a1 = MatrixMultiple(inv(M1), transposition(connect(inliers1[j], Matrix_one)));
+			a2 = MatrixMultiple(inv(M2), transposition(connect(inliers2[j], Matrix_one)));
+			A = connect(a1, ArrayMult(a2));
+			alpha = MatrixMultiple(MatrixMultiple(inv(MatrixMultiple(transposition(A), A)), transposition(A)), ArrayAddArray(c2, ArrayMult(c1, -1)));
+			p = ArrayMult(ArrayAddArray(ArrayAddArray(c1, ArrayMult(a1, alpha[1][1])), ArrayAddArray(c2, ArrayMult(a2, alpha[2][1]))), 0.5);
+			m1[j] = transposition(p);
+		end
+		m2 = ArrayAddArray(MatrixMultiple(m1, R), t);
+		for k = 1, #m1 do
+			if (m1[k][3] < 0) or (m2[k][3] < 0) then
+				negs[1][i] = negs[1][i] + 1;
+			end
+		end
+	end
+	local idx = 1;
+	while(negs[1][count] ~= FindMin2(negs)) do
+		idx = idx + 1;
+	end
+	if idx < 3 then
+		R = transposition(R1);
+	end
+	if (idx == 1 or idx == 3) then
+		t = ArrayMult(t, -1);
+	end
+	t = ArrayMult(t, 1/norm(t));
+
+	local location = MatrixMultiple(ArrayMult(t, -1), transposition(R));
+	return R, location;
+end
+local MotionFromF = SFm.MotionFromF;
 
 function SFM.DO_SFM( I1, I2, parameter )
 	
@@ -289,5 +360,30 @@ function SFM.DO_SFM( I1, I2, parameter )
 	local mp1, mp2 = MatchFeaturePoints(I1, I2);
 
 	-- Estimate F R t  
+	local F, inliersIdx = MSAC(mp1, mp2);
+	local num = ArraySum(inliersIdx);
+	local inlierPoints1 = zeros(num, 2);
+	local inlierPoints2 = zeros(num, 2);
+	local num_count = 0;
+	for i = 1, #mp1[1] do 
+		if inliersIdx[i] == 1 then 
+			num_count = num_count + 1;
+			for j = 1, #mp1 do
+			 	inlierPoints1[num_count][j] = mp1[j][i];
+			 	inlierPoints2[num_count][j] = mp2[j][i];
+			end
+		end
+	end
+
+	local R, t = MotionFromF(F, intrinsic, inlierPoints1, inlierPoints2);
+	local camMat0 = MatrixMultiple(connect(eye(3), {{0, 0, 0}}), intrinsic);
+	local camMatl = MatrixMultiple(connect(R, MatrixMultiple(ArrayMult(t, -1), R)), intrinsic);
+
+	--dense match
+	mp1, mp2 = MatchFeaturePoints(img0, img1);
+	
+
+
+
 
 end
