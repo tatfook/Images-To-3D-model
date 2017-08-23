@@ -95,15 +95,16 @@ function SFM.randperm(n, k)
 	local self = zeros(1, k);
 	self[1][1] = math.random(1, n);
 	for i = 2, k do
-		repeat
+		local determine = false
+		while(determine == false) do
 			self[1][i] = math.random(1, n);
-			local determine = self[1][i] ~= self[1][1];
+			determine = self[1][i] ~= self[1][1];
 			local j = 1;
 			while(determine == true and j<i) do
 				determine = determine and self[1][i] ~= self[1][j];
 				j = j + 1;
 			end
-		until(determine == true)
+		end
 	end
 	return self;
 end
@@ -125,14 +126,14 @@ function SFM.NormalizePoints( p, numDims )
 		end
 	end
 	local points = DotProduct(points, points);
-	local SumPoints = {points[1]};
+	local SumPoints = points[1];
 	for i = 2, numDims do
-		SumPoints = ArrayAddArray(SumPoints, {points[i]}, SumPoints);
+		SumPoints = ArrayAddArray(SumPoints, points[i], SumPoints);
 	end
 	for i = 1, pointsLength do
-		SumPoints[1][i] = math.sqrt(SumPoints[1][i]);
+		SumPoints[i] = math.sqrt(SumPoints[i]);
 	end
-	local meanDistanceFromCenter = mean(SumPoints[1]);
+	local meanDistanceFromCenter = mean(SumPoints);
 
 	local scale;
 	if meanDistanceFromCenter > 0 then
@@ -196,6 +197,8 @@ function SFM.EightPoint( points1homo, points2homo )
 	end
 	return f;
 end
+local EightPoint = SFM.EightPoint;
+
 
 function SFM.MSAC(points1, points2)
 	local nPoints = #points1[1];
@@ -214,12 +217,70 @@ function SFM.MSAC(points1, points2)
 	local maxtrails = 20000;
 	--local bestDist = 
 	math.randomseed(os.time())
-	local sampleIndicies, f, pfp, d, inliers, nInliers, Dist; 
+	local sampleIndicies, f, pfp, inliers, nInliers, bestDist;
+	local bestInliers;
+	local EightPoint1 = zeros(3, 8);
+	local EightPoint2 = zeros(3, 8); 
+	local d = {}; 
+	local Dist = 0;
 	for trails = 1, maxtrails do
+		--estimate f using random 8 points
 		sampleIndicies = randperm(nPonits, 8);
+		for i = 1, 8 do
+			EightPoint1[1][i] = points1homo[1][sampleIndicies[1][i]];
+			EightPoint1[2][i] = points1homo[2][sampleIndicies[1][i]];
+			EightPoint1[3][i] = points1homo[3][sampleIndicies[1][i]];
+			EightPoint2[1][i] = points2homo[1][sampleIndicies[1][i]];
+			EightPoint2[2][i] = points2homo[2][sampleIndicies[1][i]];
+			EightPoint2[3][i] = points2homo[3][sampleIndicies[1][i]];
+		end 
+		f = EightPoint(EightPoint1, EightPoint2);
 
+		--reprojection error
+		pfp = MatrixMultiple(transposition(f), points2homo);
+		pfp = DotProduct(pfp, points1homo);
+		d[1] = pfp[1];
+		for j = 2, 3 do
+			d = ArrayAddArray(d, pfp[j]);
+		end
+		d = DotProduct(d, d);
+
+		--find inliers
+		inliers = zeros(1, nPonits);
+		for k = 1, nPonits do 
+			if (d[1][k] <= threshold) then
+				inliers[1][k] = 1;
+			end
+		end
+		nInliers = ArraySum(inliers[1]);
+
+		--MSAC metric
+		for l = 1, nPonits do
+			if inliers[1][l] == 1 then
+				Dist = Dist + d[l];
+			end
+		end
+		Dist = Dist + threshold*(nPonits-nInliers);
+		if trails == 1 then
+			bestDist = Dist;
+		end
+		if bestDist > Dist then
+			bestDist = Dist;
+			bestInliers = inliers;
+		end
 	end
-
+	for i = 1, #bestInliers[1] do
+			EightPoint1[1][i] = points1homo[1][bestInliers[1][i]];
+			EightPoint1[2][i] = points1homo[2][bestInliers[1][i]];
+			EightPoint1[3][i] = points1homo[3][bestInliers[1][i]];
+			EightPoint2[1][i] = points2homo[1][bestInliers[1][i]];
+			EightPoint2[2][i] = points2homo[2][bestInliers[1][i]];
+			EightPoint2[3][i] = points2homo[3][bestInliers[1][i]];
+	end 
+	f = EightPoint(EightPoint1, EightPoint2);
+	return f, bestInliers;
+end
+local MSAC = SFM.MSAC;
 
 
 function SFM.DO_SFM( I1, I2, parameter )

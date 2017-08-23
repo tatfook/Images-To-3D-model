@@ -310,18 +310,29 @@ local ArrayAdd = imP.tensor.ArrayAdd;
 
 -- Two having same heigth and width array add
 function imP.tensor.ArrayAddArray(array1, array2, output)
-	local h1 = #(array1);
-	local w1 = #(array1[1]);
-	local h2 = #(array2);
-	local w2 = #(array2[1]);
-	if(h1==h2 and w1==w2) then
-		local output = output or zeros(h1, w1);
-		for i = 1, h1 do
-			for j = 1, w1 do
-				output[i][j] = array1[i][j] + array2[i][j];
-			end
+	if (type(array1[1]) == "number" and type(array2[1]) == "number") then
+		local output = output or {}
+		for i = 1, #(array1) do
+			output[i] = array1[i] + array2[i];
 		end
 		return output;
+	elseif (type(array1[1]) == "table" and type(array2[1]) == "table" and type(array1[1][1]) == "number" and type(array2[1][1]) == "number") then
+		local h1 = #(array1);
+		local w1 = #(array1[1]);
+		local h2 = #(array2);
+		local w2 = #(array2[1]);
+		if(h1==h2 and w1==w2) then
+			local output = output or zeros(h1, w1);
+			for i = 1, h1 do
+				for j = 1, w1 do
+					output[i][j] = array1[i][j] + array2[i][j];
+				end
+			end
+			return output;
+		end
+	else
+		LOG.std(nil,"warn","imP","unexpected array type");
+
 	end
 end
 local ArrayAddArray = imP.tensor.ArrayAddArray;

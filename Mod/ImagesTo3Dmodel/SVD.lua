@@ -41,18 +41,18 @@ function SVD.QRDecompositionSch( A )
 	local col = #A[1];
 	if row > col then
 		--LOG.str(nil,"warn","SVD","unexpect input Array");
-		for i = 1, m do
-			for j = 1, m-n do
-				table.insert(A[i], 0);
+		for i = 1, row do
+			for j = col+1, row do
+				A[i][j] = 0;
 			end
 		end
 		m = #A;
 		n = #A[1];
 	elseif col > row then
-		for i = n+1, m do
-			table.insert(A, {});
-			for j = 1, m do
-				table.insert(A[i], 0);
+		for i = row+1, col do
+			A[i] = {};
+			for j = 1, col do
+				A[i][j] = 0;
 			end
 		end
 		m = #A;
@@ -91,16 +91,16 @@ function SVD.QRDecompositionHouse( A )
 		--LOG.str(nil,"warn","SVD","unexpect input Array");
 		for i = 1, row do
 			for j = col+1, row do
-				table.insert(A[i], 0);
+				A[i][j] = 0;
 			end
 		end
 		m = #A;
 		n = #A[1];
 	elseif col > row then
 		for i = row+1, col do
-			table.insert(A, {});
+			A[i] = {};
 			for j = 1, col do
-				table.insert(A[i], 0);
+				A[i][j] = 0;
 			end
 		end
 		m = #A;
@@ -166,7 +166,6 @@ function SVD.DO_SVD( A )
 	S = zeros(#A, #A[1]);
 	for n = 1, #ss do
 		ssn = ss[n];
-		print()
 		S[n][n] = math.abs(ssn);
 		if ssn < 0 then
 			for i = 1, #A do
