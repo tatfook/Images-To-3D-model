@@ -40,7 +40,6 @@ function SVD.QRDecompositionSch( A )
 	local row = #A;
 	local col = #A[1];
 	if row > col then
-		--LOG.str(nil,"warn","SVD","unexpect input Array");
 		for i = 1, row do
 			for j = col+1, row do
 				A[i][j] = 0;
@@ -88,7 +87,6 @@ function SVD.QRDecompositionHouse( A )
 	local row = #A;
 	local col = #A[1];
 	if row > col then
-		--LOG.str(nil,"warn","SVD","unexpect input Array");
 		for i = 1, row do
 			for j = col+1, row do
 				A[i][j] = 0;
