@@ -319,7 +319,7 @@ function SFM.MotionFromF( F, intrinsic, inliers1, inlires2 )
 			R = transposition(R2);
 		end
 		t = ArrayMult(t, -1);
-		camMatl = transposition(MatrixMultiple(connect(R, t), intrinsic));
+		camMatl = transposition(MatrixMultiple(connect(R, t, 1), intrinsic));
 		M2 = submatrix(camMatl, 1, 3, 1, 3);
 		c2 = ArrayMult(MatrixMultiple(inv(M2), submatrix(camMatl, 1, #camMatl, 4,4)), -1);
 		for j = nInliers do
@@ -354,6 +354,31 @@ function SFM.MotionFromF( F, intrinsic, inliers1, inlires2 )
 end
 local MotionFromF = SFm.MotionFromF;
 
+function SFM.mytriangualation( matchedPoints1, matchedPoints2, cam1, cam2 )
+	local cam = {{cam1}, {cam2}};
+	local nPoints = #matchedPoints1[1];
+	local points3d = zeros(nPoints, 3);
+
+	local pair = zeros(2, 2)
+	local A = zeros(4, 4);
+	local P = zeros(#cam1, #cam1[1]);
+	local X = zeros
+	for i = 1, nPoints do
+		pair = {{matchedPoints1[1][i], matchedPoints1[2][i]}, {matchedPoints2[1][i], matchedPoints2[2][i]}};
+		for j = 1, 2 do
+			P = cam[j];
+			A[2*j-1] = ArrayAddArray(ArrayMult(P[3], pair[j][1]), ArrayMult(P[1], -1));
+			A[2*j] = ArrayAddArray(ArrayMult(P[3], pair[j][2]), ArrayMult(P[2], -1));
+		end
+		local U, S, V = DO_SVD(A);
+		for k = 1, 3 do
+			points3d[i][k] = V[k][4]/V[4][4];
+		end
+	end
+	return points3d;
+end
+local mytriangualation = SFM.mytriangualation;
+
 function SFM.DO_SFM( I1, I2, parameter )
 	
 	--Match features
@@ -376,11 +401,12 @@ function SFM.DO_SFM( I1, I2, parameter )
 	end
 
 	local R, t = MotionFromF(F, intrinsic, inlierPoints1, inlierPoints2);
-	local camMat0 = MatrixMultiple(connect(eye(3), {{0, 0, 0}}), intrinsic);
-	local camMatl = MatrixMultiple(connect(R, MatrixMultiple(ArrayMult(t, -1), R)), intrinsic);
+	local camMat0 = MatrixMultiple(connect(eye(3), {{0, 0, 0}}, 1), intrinsic);
+	local camMatl = MatrixMultiple(connect(R, MatrixMultiple(ArrayMult(t, -1), R), 1), intrinsic);
 
 	--dense match
-	mp1, mp2 = MatchFeaturePoints(img0, img1);
+	local mp11, mp22 = MatchFeaturePoints(img0, img1);
+	local points3D = mytriangualation(mp11, mp22, camMat0, camMatl);
 	
 
 

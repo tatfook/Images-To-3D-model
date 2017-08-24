@@ -833,12 +833,13 @@ end
 local submatrix = imP.tensor.submatrix;
 
 --connect 2 vector
-function imP.tensor.connect(A, B)
+function imP.tensor.connect(A, B, mod)
 	local row1 = #A;
 	local column1 = #A[1];
 	local row2 = #B;
 	local column2 = #B[1];
-	if row1 == row2 then
+	local mod = mod or 0
+	if row1 == row2 and mod == 0 then
 		local self = zeros(row1, column1 + column2);
 		for j = 1, column1 + column2 do
 			for i = 1, row1 do
@@ -850,10 +851,10 @@ function imP.tensor.connect(A, B)
 			end
 		end
 		return self;
-	elseif column1 == column2 then
+	elseif column1 == column2 and mod == 1 then
 		local self = zeros(row1 + row2, column1);
 		for i = 1, row1 + row2 do
-			for j = column1 do
+			for j = 1, column1 do
 				if i <= row1 then
 					self[i][j] = A[i][j];
 				elseif i > row1 then
@@ -862,7 +863,6 @@ function imP.tensor.connect(A, B)
 			end
 		end
 		return self;
-	end
 	end
 end
 local connect = imP.tensor.connect;
