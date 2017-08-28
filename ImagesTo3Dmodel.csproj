@@ -51,6 +51,8 @@
     <None Include="Mod\ImagesTo3Dmodel\SVD.lua" />
     <None Include="Mod\Test\TestCreatTXT.lua" />
     <None Include="Mod\Test\TestimP.lua" />
+    <None Include="Mod\Test\TestMASC.lua" />
+    <None Include="Mod\Test\TestSFM.lua" />
     <None Include="Mod\Test\TestSIFT.lua" />
     <None Include="Mod\Test\TestSIFTmatching.lua" />
     <None Include="README.md" />

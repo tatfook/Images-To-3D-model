@@ -72,7 +72,7 @@ local Im_filename = "Mod/ImagesTo3Dmodel/demo-data/church3/2.jpg";
 --local Im_filename = "Mod/ImagesTo3Dmodel/demo-data/2.JPG";
 
 
---local TXT_filename = "D:/University/SOC2017/ParaCraftSDK-master/ParaCraftSDK-master/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/demo-data/fountain/1.txt";
+--local TXT_filename = "D:/University/SOC2017/_mod/ImagesTo3Dmodel/Mod/ImagesTo3Dmodel/demo-data/fountain/1.txt";
 
 
 local Im = imread(Im_filename);

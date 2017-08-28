@@ -10,8 +10,8 @@ local ImagesTo3Dmodel = commonlib.gettable("Mod.ImagesTo3Dmodel");
 ImagesTo3Dmodel:Test("Images");
 ------------------------------------------------------------
 ]]
-NPL.load("(gl)Mod/ImagesTo3Dmodel/TestAbc.lua");
-local TestAbc = commonlib.gettable("Mod.ImagesTo3Dmodel.TestAbc");
+--NPL.load("(gl)Mod/ImagesTo3Dmodel/TestAbc.lua");
+--local TestAbc = commonlib.gettable("Mod.ImagesTo3Dmodel.TestAbc");
 
 local CmdParser = commonlib.gettable("MyCompany.Aries.Game.CmdParser");	
 
@@ -51,8 +51,8 @@ function ImagesTo3Dmodel:OnDestroy()
 end
 
 function ImagesTo3Dmodel:Test(p)
-    commonlib.echo("ImagesTo3Dmodel:Test");
-    commonlib.echo(p);
+--    commonlib.echo("ImagesTo3Dmodel:Test");
+--    commonlib.echo(p);
     return {p};
 end
 

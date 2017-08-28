@@ -12,12 +12,12 @@ EXIT /B %ERRORLEVEL%
 
 rem install function here
 :InstallPackage
-if exist "%1\README.md" (
+if exist "%1/README.md" (
     pushd %1
     git pull
     popd
 ) else (
-    rmdir /s /q "%CD%\%1"
+    rmdir /s /q "%CD%/%1"
     git clone https://github.com/NPLPackages/%1
 )
 EXIT /B 0

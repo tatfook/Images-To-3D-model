@@ -75,7 +75,7 @@ local QRDecompositionHouse = SVD.QRDecompositionHouse;
 local DO_SVD = SVD.DO_SVD;
 ------------------------------------------------------------
 
-function SFM.MatchFeaturePoints( I1, I2 )
+function SFM.MatchFeaturePoints( I1, I2, threshold )
 	local frames1, descr1, gss1, dogss1 = DO_SIFT(I1);
 	local frames2, descr2, gss2, dogss2 = DO_SIFT(I2);
 
@@ -84,9 +84,10 @@ function SFM.MatchFeaturePoints( I1, I2 )
 
 	frames1 = transposition(frames1);
 	frames2 = transposition(frames2);
+	local threshold = threshold or 0.75;
 
-	local matches, num, mp1, mp2 = match(I1, descr1, frames1, I2, descr2, frames2);
-	return mp1, mp2;
+	local final_matches, matches, num, mp1, mp2, mp1_new, mp2_new = match(I1, descr1, frames1, I2, descr2, frames2, threshold);
+	return mp1_new, mp2_new, final_matches;
 end
 local MatchFeaturePoints = SFM.MatchFeaturePoints;
 
@@ -202,8 +203,8 @@ local EightPoint = SFM.EightPoint;
 
 function SFM.MSAC(points1, points2)
 	local nPoints = #points1[1];
-	local points1homo = zeros(3, nPonits);
-	local points2home = zeros(3, nPonits);
+	local points1homo = zeros(3, nPoints);
+	local points2homo = zeros(3, nPoints);
 	for i = 1, nPoints do
 		points1homo[1][i] = points1[1][i];
 		points1homo[2][i] = points1[2][i];
@@ -223,9 +224,10 @@ function SFM.MSAC(points1, points2)
 	local EightPoint2 = zeros(3, 8); 
 	local d = {}; 
 	local Dist = 0;
+	LOG.std(nil, "debug", "SFM", "MSAC: Estimate f using random 8 points")
 	for trails = 1, maxtrails do
 		--estimate f using random 8 points
-		sampleIndicies = randperm(nPonits, 8);
+		sampleIndicies = randperm(nPoints, 8);
 		for i = 1, 8 do
 			EightPoint1[1][i] = points1homo[1][sampleIndicies[1][i]];
 			EightPoint1[2][i] = points1homo[2][sampleIndicies[1][i]];
@@ -246,8 +248,8 @@ function SFM.MSAC(points1, points2)
 		d = DotProduct(d, d);
 
 		--find inliers
-		inliers = zeros(1, nPonits);
-		for k = 1, nPonits do 
+		inliers = zeros(1, nPoints);
+		for k = 1, nPoints do 
 			if (d[1][k] <= threshold) then
 				inliers[1][k] = 1;
 			end
@@ -255,12 +257,12 @@ function SFM.MSAC(points1, points2)
 		nInliers = ArraySum(inliers[1]);
 
 		--MSAC metric
-		for l = 1, nPonits do
+		for l = 1, nPoints do
 			if inliers[1][l] == 1 then
 				Dist = Dist + d[l];
 			end
 		end
-		Dist = Dist + threshold*(nPonits-nInliers);
+		Dist = Dist + threshold*(nPoints-nInliers);
 		if trails == 1 then
 			bestDist = Dist;
 		end
@@ -309,7 +311,7 @@ function SFM.MotionFromF( F, intrinsic, inliers1, inlires2 )
 	--choose solution
 	local negs = zeros(1, 4);
 	local nInliers = #inliers1;
-	local camMat0 = transposition(MatrixMultiple({{1, 0, 0},{0, 1, 0},{0, 0, 1},{0, 0, 0}}, intrinsic);
+	local camMat0 = transposition(MatrixMultiple({{1, 0, 0},{0, 1, 0},{0, 0, 1},{0, 0, 0}}, intrinsic));
 	local M1 = submatrix(camMat0, 1, 3, 1, 3);
 	local c1 = ArrayMult(MatrixMultiple(inv(M1), submatrix(camMat0, 1, #camMat0, 4,4)), -1);
 	local camMatl, M2, c2, a1, a2, A, alpha, p, m1, m2;
@@ -322,7 +324,7 @@ function SFM.MotionFromF( F, intrinsic, inliers1, inlires2 )
 		camMatl = transposition(MatrixMultiple(connect(R, t, 1), intrinsic));
 		M2 = submatrix(camMatl, 1, 3, 1, 3);
 		c2 = ArrayMult(MatrixMultiple(inv(M2), submatrix(camMatl, 1, #camMatl, 4,4)), -1);
-		for j = nInliers do
+		for j = 1, nInliers do
 			a1 = MatrixMultiple(inv(M1), transposition(connect(inliers1[j], Matrix_one)));
 			a2 = MatrixMultiple(inv(M2), transposition(connect(inliers2[j], Matrix_one)));
 			A = connect(a1, ArrayMult(a2));
@@ -352,7 +354,7 @@ function SFM.MotionFromF( F, intrinsic, inliers1, inlires2 )
 	local location = MatrixMultiple(ArrayMult(t, -1), transposition(R));
 	return R, location;
 end
-local MotionFromF = SFm.MotionFromF;
+local MotionFromF = SFM.MotionFromF;
 
 function SFM.mytriangualation( matchedPoints1, matchedPoints2, cam1, cam2 )
 	local cam = {{cam1}, {cam2}};
@@ -379,13 +381,34 @@ function SFM.mytriangualation( matchedPoints1, matchedPoints2, cam1, cam2 )
 end
 local mytriangualation = SFM.mytriangualation;
 
-function SFM.DO_SFM( I1, I2, parameter )
+function SFM.DO_SFM( I1, I2 )
 	
-	--Match features
-	local mp1, mp2 = MatchFeaturePoints(I1, I2);
 
-	-- Estimate F R t  
+	local col = {{1663.782234, 0.000000, 785.889057}, 
+					{0.000000, 1663.367425, 638.790025},
+					{0.000000, 0.000000, 1.000000}};
+	local ds = 500;
+	local ms = #I1;
+	LOG.std(nil, "debug", "SFM", "---------- Strat SFM ----------");
+
+	if ms > ds then
+		I1 = imresize(I1, ds/ms);
+		I2 = imresize(I2, ds/ms);
+		col = ArrayMult(col, ds/ms);
+	end
+	local intrinsic = transposition(col);
+	--Match features
+	LOG.std(nil, "debug", "SFM", "SFM: Computing match feature points...");
+	local mp1, mp2, match = MatchFeaturePoints(I1, I2, 0.75);
+	LOG.std(nil, "debug", "SFM", "SFM: Matched points: %f", match);
+
+	-- Estimate F R t 
+	LOG.std(nil, "debug", "SFM", "SFM: Estimate...");
+	
+	LOG.std(nil, "debug", "SFM", "SFM: Start MSAC...");	
 	local F, inliersIdx = MSAC(mp1, mp2);
+	LOG.std(nil, "debug", "SFM", "SFM: Estimate Stop Point 1");	
+
 	local num = ArraySum(inliersIdx);
 	local inlierPoints1 = zeros(num, 2);
 	local inlierPoints2 = zeros(num, 2);
@@ -400,6 +423,7 @@ function SFM.DO_SFM( I1, I2, parameter )
 		end
 	end
 
+	LOG.std(nil, "debug", "SFM", "SFM: Start Motion From F...");	
 	local R, t = MotionFromF(F, intrinsic, inlierPoints1, inlierPoints2);
 	local camMat0 = MatrixMultiple(connect(eye(3), {{0, 0, 0}}, 1), intrinsic);
 	local camMatl = MatrixMultiple(connect(R, MatrixMultiple(ArrayMult(t, -1), R), 1), intrinsic);
@@ -408,8 +432,5 @@ function SFM.DO_SFM( I1, I2, parameter )
 	local mp11, mp22 = MatchFeaturePoints(img0, img1);
 	local points3D = mytriangualation(mp11, mp22, camMat0, camMatl);
 	
-
-
-
-
+	return points3D;
 end

@@ -102,7 +102,7 @@ function imP.Round(n)
 	elseif type(n) == "table" and type(n[1]) =="number" then
 		self = {};
 		for i, v in ipairs(n) do
-			table.insert(self,1, math.floor(v + 0.5));
+			table.insert(self, 1, math.floor(v + 0.5));
 		end
 	elseif type(n) == "table" and type(n[1]) == "table" then
 		self = {};
@@ -150,13 +150,13 @@ end
 local imread = imP.imread;
 
 function imP.rgb2gray(array)
-	if (#array == 3 and type(array[1]) == "table" and type(array[1][1]) == "table") then
+	if(#array == 3 and type(array[1]) == "table" and type(array[1][1]) == "table") then
 		local row = #array[1];
 		local column = #array[1][1];
 		local self = zeros(row, column);
 		for i = 1, row do
 			for j = 1, column do
-				self[i][j] = (299*array[1][i][j] + 587*array[2][i][j] + 114*array[3][i][j])/1000;
+				self[i][j] =(299 * array[1][i][j] + 587 * array[2][i][j] + 114 * array[3][i][j]) / 1000;
 				self[i][j] = math.floor(self[i][j] + 0.5);
 			end
 		end
@@ -168,7 +168,7 @@ local rgb2gray = imP.rgb2gray;
 -- Creat the txt file of the array.
 function imP.CreatTXT(array, filename)	
 	ParaIO.CreateDirectory(filename);
-	local file = ParaIO.open(filename, "w");
+    local file = ParaIO.open(filename, "w");
 	if(file:IsValid()) then
 		local h = #(array);
 		for j = 1, h do
@@ -196,7 +196,7 @@ function imP.tensor.DotProduct(array1, array2, output)
 	if type(array1[1]) == "number" then
 		local output = output or {};
 		for i = 1, #array1 do
-			output[i] = array1[i]*array2[i];
+			output[i] = array1[i] * array2[i];
 		end
 		return output;
 	elseif type(array1[1]) == "table" and type(array1[1][1]) == "number" then	
@@ -210,7 +210,7 @@ function imP.tensor.DotProduct(array1, array2, output)
 		end
 		return output;
 	else
-		LOG.std(nil,"warn","imP","unexpected array type");
+		LOG.std(nil, "warn", "imP", "unexpected array type");
 	end
 end
 local DotProduct = imP.tensor.DotProduct;
@@ -223,14 +223,14 @@ function imP.tensor.ArraySum(array)
 		for i = 1, #array do
 			sum = sum + array[i];
 		end
-	elseif (type(array[1]) == "table" and type(array[1][1]) == "number") then
+	elseif(type(array[1]) == "table" and type(array[1][1]) == "number") then
 		for i = 1, #array do
 			for j = 1, #array[1] do 
 				sum = sum + array[i][j];
 			end
 		end
 	else
-		LOG.std(nil,"warn","imP","unexpected array type");
+		LOG.std(nil, "warn", "imP", "unexpected array type");
 	end
 	return sum;
 end
@@ -283,11 +283,11 @@ function imP.tensor.ArrayMult(array, n, output)
 	else 
 		local array1_o = output or {};
 		for i = 1, #array do
-			array1_o[i] = array[i]*n;
+			array1_o[i] = array[i] * n;
 		end
 		return array1_o;
 	end
- end
+end
 local ArrayMult = imP.tensor.ArrayMult;
 --ArrayShow(ArrayMult(array,3))
 
@@ -310,13 +310,13 @@ local ArrayAdd = imP.tensor.ArrayAdd;
 
 -- Two having same heigth and width array add
 function imP.tensor.ArrayAddArray(array1, array2, output)
-	if (type(array1[1]) == "number" and type(array2[1]) == "number") then
+	if(type(array1[1]) == "number" and type(array2[1]) == "number") then
 		local output = output or {}
 		for i = 1, #(array1) do
 			output[i] = array1[i] + array2[i];
 		end
 		return output;
-	elseif (type(array1[1]) == "table" and type(array2[1]) == "table" and type(array1[1][1]) == "number" and type(array2[1][1]) == "number") then
+	elseif(type(array1[1]) == "table" and type(array2[1]) == "table" and type(array1[1][1]) == "number" and type(array2[1][1]) == "number") then
 		local h1 = #(array1);
 		local w1 = #(array1[1]);
 		local h2 = #(array2);
@@ -331,7 +331,7 @@ function imP.tensor.ArrayAddArray(array1, array2, output)
 			return output;
 		end
 	else
-		LOG.std(nil,"warn","imP","unexpected array type");
+		LOG.std(nil, "warn", "imP", "unexpected array type");
 
 	end
 end
@@ -414,7 +414,7 @@ function imP.GetGaussian(sig)
 	local g = zeros(wsize, wsize);
 	for i = 1, wsize do
 		for j = 1, wsize do
-			g[i][j] =(1 / sig^2) * math.exp(-((i-w)^2 +(j - w)^2) / 2 / sig^2);
+			g[i][j] = (1 / sig^2) * math.exp(-((i-w)^2+(j - w)^2) / 2 / sig^2);
 		end
 	end
 	sum = ArraySum(g)
@@ -635,11 +635,11 @@ local HarrisCD = imP.HarrisCD;
 
 --Get a column in a Matrix
 function imP.tensor.GetColumn(M, column, output)
-	local self = output or zeros(1, #M);
+	local output = output or zeros(1, #M);
 	for i = 1, #M do
-		self[1][i] = M[i][column];
+		output[1][i] = M[i][column];
 	end
-	return self;
+	return output;
 end
 local GetColumn = imP.tensor.GetColumn;
 
@@ -654,13 +654,13 @@ function imP.tensor.MatrixMultiple(M1, M2, output1, output2)
 	local row2 = #M2;
 	local column2 = #M2[1];
 	if column1 == row2 then
-		local self = output1 or zeros(row1, column2);
+		local output1 = output1 or zeros(row1, column2);
 		for i = 1, row1 do
 			for j = 1, column2 do	
-				self[i][j] = ArraySum(DotProduct({M1[i]}, GetColumn(M2, j, output2)));
+				output1[i][j] = ArraySum(DotProduct(M1[i], GetColumn(M2, j, output2)[1]));
 			end
 		end
-		return self;
+		return output1;
 	end
 end
 local MatrixMultiple = imP.tensor.MatrixMultiple;
@@ -677,7 +677,7 @@ function imP.tensor.det(M)
 		local det2 = M[1][1] * M[2][2]-M[1][2] * M[2][1];
 		return det2;
 	elseif(row == column) and(row == 3) then
-		local det3 =(M[1][1] * M[2][2] * M[3][3] + M[1][2] * M[2][3] * M[3][1]
+		local det3 = (M[1][1] * M[2][2] * M[3][3] + M[1][2] * M[2][3] * M[3][1]
 		+ M[1][3] * M[2][1] * M[3][2]-M[1][1] * M[2][3] * M[3][2]
 		-M[1][2] * M[2][1] * M[3][3]-M[1][3] * M[2][2] * M[3][1]);
 		return det3;
@@ -730,12 +730,12 @@ function imP.tensor.inv(M, invM)
 	if(row == column) and(row == 2) then
 		local inv2 = ArrayMult({{M[2][2], -M[1][2]}, {-M[2][1], M[1][1]}}, 1 / det(M));
 		return inv2;
-	elseif(row == column) and (row == 3) then
+	elseif(row == column) and(row == 3) then
 		local inv3 = zeros(3, 3) or invM;
 		local det3 = det(M);
 		for i = 1, 3 do
 			for j = 1, 3 do	
-				inv3[j][i] =(-1)^(i + j) * det(SubMatrix(M, i, j)) / det3;
+				inv3[j][i] = (-1)^(i + j) * det(SubMatrix(M, i, j)) / det3;
 				--print(inv3[i][j], det(SubMatrix(M,i,j)),det3)
 			end
 		end
@@ -822,7 +822,7 @@ function imP.tensor.submatrix(matrix, a, b, c, d)
 	local b = b or #matrix;
 	local c = c or 1;
 	local d = d or #matrix[1];
-	local subm = output or zeros(b-a+1, d-c+1);
+	local subm = output or zeros(b-a + 1, d-c + 1);
 	for i = 1, b-a + 1 do
 		for j = 1, d-c + 1 do 
 			subm[i][j] = matrix[i-1 + a][j - 1 + c];
@@ -883,12 +883,12 @@ function imP.tensor.reshape(A, m, n)
 			result = V;
 		else
 			for i = 1, m do
-				result[i] = subvector(V, 1 + n * (i - 1), n * i);
+				result[i] = subvector(V, 1 + n *(i - 1), n * i);
 			end
 		end
 	else --A is a vector, m usually will not be 1
 		for i = 1, m do 
-			result[i] = subvector(A, 1 + n * (i - 1), n * i);
+			result[i] = subvector(A, 1 + n *(i - 1), n * i);
 		end		
 	end
 	return result;
@@ -913,15 +913,15 @@ function imP.tensor.norm(array)
 	local self = 0;
 	if type(array[1]) == "table" and #array == 1 then
 		for i = 1, #array[1] do
-			self = self + (array[1][i])^2;
+			self = self +(array[1][i])^2;
 		end
 	elseif type(array[1]) == "table" and #array[1] == 1 then
 		for i = 1, #array do
-			self = self + (array[i][1])^2;
+			self = self +(array[i][1])^2;
 		end
 	elseif type(array[1]) == "number" then
 		for j = 1, #array do
-			self = self + (array[j])^2;
+			self = self +(array[j])^2;
 		end
 	end
 	self = math.sqrt(self);
@@ -929,11 +929,11 @@ function imP.tensor.norm(array)
 end
 local norm = imP.tensor.norm;
 
-function imP.tensor.dot( array1, array2 )
+function imP.tensor.dot(array1, array2)
 	local self = 0;
 	if #array1 == #array2 then
 		for i = 1, #array1 do
-			self = self + array1[i]*array2[i];
+			self = self + array1[i] * array2[i];
 		end
 	end
 	return self;
@@ -957,26 +957,26 @@ local mod = imP.tensor.mod;
 -- D[3] = {2,1,1,0,1};
 -- local gx,gy = imP.tensor.gradient(D)
 --gx and gy are matrixes 
-function  imP.tensor.gradient( m )
+function imP.tensor.gradient(m)
 	local rows = #m;
 	local cols = #m[1];
-	local gx = zeros(rows,cols);
-	local gy = zeros(rows,cols);
-	for i = 1,rows do 
+	local gx = zeros(rows, cols);
+	local gy = zeros(rows, cols);
+	for i = 1, rows do 
 		gy[i][1] = m[i][2]-m[i][1]
 		gy[i][cols] = m[i][cols]-m[i][cols-1]
 		for j = 2, cols-1 do
-			gy[i][j] = 0.5*(m[i][j+1]-m[i][j-1])
+			gy[i][j] = 0.5 * (m[i][j + 1]-m[i][j-1])
 		end
 	end
 	for j = 1, cols do 
 		gx[1][j] = m[2][j]-m[1][j]
 		gx[rows][j] = m[rows][j]-m[rows-1][j]
 		for i = 2, rows-1 do
-			gx[i][j] = 0.5*(m[i+1][j]-m[i-1][j])
+			gx[i][j] = 0.5 * (m[i + 1][j]-m[i-1][j])
 		end
 	end
-	return gx,gy
+	return gx, gy
 end
 local gradient = imP.tensor.gradient;
 
@@ -985,9 +985,9 @@ function imP.tensor.Spline(w, a)
 	local n = -0.5 or a;
 	local num = math.abs(w);
 	if num < 1 then
-		S = 1 - (n+3)*num^2 + (n+2)*num^3;
+		S = 1 -(n + 3) * num^2 +(n + 2) * num^3;
 	elseif num >=1 and num <=2 then
-		S = -4*n + 8*n*num - 5*n*num^2 - n*num^3;
+		S = -4 * n + 8 * n * num - 5 * n * num^2 - n * num^3;
 	else
 		S = 0
 	end
@@ -998,8 +998,8 @@ local Spline = imP.tensor.Spline;
 function imP.tensor.imresize(Image, outputsize)
 	local rows = #Image;
 	local cols = #Image[1];
-	local outputRows = math.floor(rows*outputsize + 0.5);
-	local outputCols = math.floor(cols*outputsize + 0.5);
+	local outputRows = math.floor(rows * outputsize + 0.5);
+	local outputCols = math.floor(cols * outputsize + 0.5);
 	local self = zeros(outputRows, outputCols);
 	local rowNew, colNew, u, v, m, n;
 	local A, B, C;
@@ -1009,14 +1009,14 @@ function imP.tensor.imresize(Image, outputsize)
 	local output4 = zeros(1, 4);
 
 	-- Extend the image
-	local Image0 = zeros(rows+6, cols+6);
+	local Image0 = zeros(rows + 6, cols + 6);
 	for i = 4, rows + 3 do	
 		Image0[i][1] = Image[i-3][1];
 		Image0[i][2] = Image[i-3][2];
 		Image0[i][3] = Image[i-3][3];
-		Image0[i][cols+4] = Image[i-3][cols-2];
-		Image0[i][cols+5] = Image[i-3][cols-1];
-		Image0[i][cols+6] = Image[i-3][cols];
+		Image0[i][cols + 4] = Image[i-3][cols-2];
+		Image0[i][cols + 5] = Image[i-3][cols-1];
+		Image0[i][cols + 6] = Image[i-3][cols];
 		for j = 4, cols + 3 do
 			Image0[i][j] = Image[i-3][j-3];
 		end
@@ -1025,36 +1025,36 @@ function imP.tensor.imresize(Image, outputsize)
 		Image0[1][i] = Image[1][i-3];
 		Image0[2][i] = Image[2][i-3];
 		Image0[3][i] = Image[3][i-3];
-		Image0[rows+4][i] = Image[rows-2][i-3];
-		Image0[rows+5][i] = Image[rows-1][i-3];
-		Image0[rows+6][i] = Image[rows][i-3];
+		Image0[rows + 4][i] = Image[rows-2][i-3];
+		Image0[rows + 5][i] = Image[rows-1][i-3];
+		Image0[rows + 6][i] = Image[rows][i-3];
 	end
 	for i = 1, 3 do
 		for j = 1, 3 do
 			Image0[i][j] = Image[i][j];
-			Image0[rows+3+i][j] = Image[rows+i-3][j];
-			Image0[i][cols+3+j] = Image[i][cols+j-3];
-			Image0[rows+3+i][cols+3+j] = Image[rows+i-3][cols+j-3];
+			Image0[rows + 3 + i][j] = Image[rows + i - 3][j];
+			Image0[i][cols + 3 + j] = Image[i][cols + j - 3];
+			Image0[rows + 3 + i][cols + 3 + j] = Image[rows + i - 3][cols + j-3];
 		end
 	end
 
 
 	for i = 1, outputRows do
 		for j = 1, outputCols do
-			rowNew = i*rows/outputRows;
-			colNew = j*cols/outputCols;
+			rowNew = i * rows / outputRows;
+			colNew = j * cols / outputCols;
 			
-			m = math.floor(rowNew)+3;
-			n = math.floor(colNew)+3;
+			m = math.floor(rowNew) + 3;
+			n = math.floor(colNew) + 3;
 			if m >= 2 and m <= rows + 6 and n >= 3 and n <= cols + 7 then
 --				u = rowNew - m + 2;
 --				v = colNew - n + 2;
 				--A = {{Spline(1+u), Spline(u), Spline(1-u), Spline(2-u)}};
-				A={{1,1,1,8}};
-				B = {{Image0[m-1][n-2], Image0[m][n-2], Image0[m+1][n-2], Image0[m+2][n-2]},
-					{Image0[m-1][n-1], Image0[m][n-1], Image0[m+1][n-1], Image0[m+2][n-1]},
-					{Image0[m-1][n], Image0[m][n], Image0[m+1][n], Image0[m+2][n]},
-					{Image0[m-1][n+1], Image0[m][n+1], Image0[m+1][n+1], Image0[m+2][n+1]}}
+				A = {{1, 1, 1, 8}};
+				B = {{Image0[m-1][n-2], Image0[m][n-2], Image0[m + 1][n-2], Image0[m + 2][n-2]},
+				{Image0[m-1][n-1], Image0[m][n-1], Image0[m + 1][n-1], Image0[m + 2][n-1]},
+				{Image0[m-1][n], Image0[m][n], Image0[m + 1][n], Image0[m + 2][n]},
+				{Image0[m-1][n + 1], Image0[m][n + 1], Image0[m + 1][n + 1], Image0[m + 2][n + 1]}}
 				--C = {{Spline(1+v)}, {Spline(v)}, {Spline(1-v)}, {Spline(2-v)}};
 				C = {{1}, {1}, {1}, {8}};
 				local f = MatrixMultiple(MatrixMultiple(A, B, output1, output3), C, output2, output4);
@@ -1066,32 +1066,32 @@ function imP.tensor.imresize(Image, outputsize)
 	local ImageMin = FindMin2(Image);
 	local SelfMax = FindMax2(self);
 	local SelfMin = FindMin2(self);
-	self = ArrayMult(self, (ImageMax - ImageMin)/(SelfMax - SelfMin));
+	self = ArrayMult(self,(ImageMax - ImageMin) / (SelfMax - SelfMin));
 	self = ArrayAdd(self, ImageMax - FindMax2(self));
 	self = Round(self);
 	return self;
 end
 local imresize = imP.tensor.imresize;
 
-function imP.tensor.mean( array )
+function imP.tensor.mean(array)
 	local self;
 	if type(array[1]) == "number" then
-		self = ArraySum(array)/#array;
+		self = ArraySum(array) / #array;
 	elseif type(array[1]) == "table" and type(array[1][1]) == "number" then
 		self = {};
 		for i = 1, #array do
-			self[i] = ArraySum({array[i]})/#array[i];
+			self[i] = ArraySum({array[i]}) / #array[i];
 		end
 	else 
-		LOG.std(nil,"warn","imP","unexpected array table")
+		LOG.std(nil, "warn", "imP", "unexpected array table")
 	end
 	return self;
 end
 local mean = imP.tensor.mean;
 
-function imP.tensor.diag( array )
+function imP.tensor.diag(array)
 	if type(array) == "table" and type(array[1]) == "number" then
-		local self =zeros(#array, #array);
+		local self = zeros(#array, #array);
 		for i = 1, #array do
 			self[i][i] = array[i];
 		end
@@ -1103,13 +1103,13 @@ function imP.tensor.diag( array )
 		end
 		return self;
 	else
-		LOG.std(nil,"warn","imP","unexpected array type");
+		LOG.std(nil, "warn", "imP", "unexpected array type");
 	end
 end
 local diag = imP.tensor.diag;
 
 --Creat a unit Matrix which size is n
-function imP.tensor.eye( n, output )
+function imP.tensor.eye(n, output)
 	local output = output or zeros(n, n);
 	for i = 1, n do
 		output[i][i] = 1;
@@ -1119,7 +1119,7 @@ end
 local eye = imP.tensor.eye;
 
 --sign function
-function imP.tensor.sign( x )
+function imP.tensor.sign(x)
 	if x > 0 then
 		return 1;
 	elseif x < 0 then
@@ -1131,7 +1131,7 @@ end
 local sign = imP.tensor.sign;
 
 --Upper triangular part of matrix
-function imP.tensor.triu( Array, n, output )
+function imP.tensor.triu(Array, n, output)
 	local n = n or 0;
 	local output = output or zeros(#Array, #Array[1]);
 	local count = 1 + n;
@@ -1150,3 +1150,4 @@ function imP.tensor.triu( Array, n, output )
 	return output;
 end
 local triu = imP.tensor.triu;
+

@@ -16,7 +16,7 @@ local DO_SVD = SVD.DO_SVD;
 ]]
 NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua");
 
-local SVD = commonlib.getttable("SVD");
+local SVD = commonlib.gettable("SVD");
 
 ------------------------------------------------------------
 local zeros = imP.tensor.zeros;
@@ -36,19 +36,19 @@ local FindMax2 = imP.tensor.FindMax2;
 
 ------------------------------------------------------------
 --@para: QR decomposition algorithm by Gram-Schmidt method
-function SVD.QRDecompositionSch( A )
+function SVD.QRDecompositionSch(A)
 	local row = #A;
 	local col = #A[1];
 	if row > col then
 		for i = 1, row do
-			for j = col+1, row do
+			for j = col + 1, row do
 				A[i][j] = 0;
 			end
 		end
 		m = #A;
 		n = #A[1];
 	elseif col > row then
-		for i = row+1, col do
+		for i = row + 1, col do
 			A[i] = {};
 			for j = 1, col do
 				A[i][j] = 0;
@@ -60,7 +60,7 @@ function SVD.QRDecompositionSch( A )
 	local Q = zeros(m, n);
 	local R = zeros(n, n);
 	local Qk = {};
-	local transA = zeros(n,m);
+	local transA = zeros(n, m);
 	for k = 1, n do
 		transA = transposition(A);
 		R[k][k] = norm(transA[k]);
@@ -69,10 +69,10 @@ function SVD.QRDecompositionSch( A )
 				Q[i][k] = A[i][k] / R[k][k];
 				Qk[i] = Q[i][k];
 			end
-			for j = k+1, n do
-				R[k][j] = ArraySum(DotProduct(Qk,transA[j]));
+			for j = k + 1, n do
+				R[k][j] = ArraySum(DotProduct(Qk, transA[j]));
 				for i = 1, m do 
-					A[i][j] = A[i][j] - R[k][j]*Q[i][k];
+					A[i][j] = A[i][j] - R[k][j] * Q[i][k];
 				end
 			end
 		end
@@ -82,20 +82,21 @@ function SVD.QRDecompositionSch( A )
 	return Q, R;
 end
 local QRDecompositionSch = SVD.QRDecompositionSch;
+
 --@para: QR decomposition algorithm by Householder method
-function SVD.QRDecompositionHouse( A )
+function SVD.QRDecompositionHouse(A)
 	local row = #A;
 	local col = #A[1];
 	if row > col then
 		for i = 1, row do
-			for j = col+1, row do
+			for j = col + 1, row do
 				A[i][j] = 0;
 			end
 		end
 		m = #A;
 		n = #A[1];
 	elseif col > row then
-		for i = row+1, col do
+		for i = row + 1, col do
 			A[i] = {};
 			for j = 1, col do
 				A[i][j] = 0;
@@ -109,23 +110,23 @@ function SVD.QRDecompositionHouse( A )
 	local P1 = eye(n);
 	local s, w, P;
 	for k = 1, n-1 do 
-		s = -sign(A[k][k])*norm(submatrix(A,k,n,k,k));
+		s = -sign(A[k][k]) * norm(submatrix(A, k, n, k, k));
 		R[k][k] = -s;
 		if k == 1 then
-			w = transposition(submatrix(A,2,n,k,k));
-			table.insert(w[1],1,A[1][1]+s);
+			w = transposition(submatrix(A, 2, n, k, k));
+			table.insert(w[1], 1, A[1][1] + s);
 		else
-			w = transposition(submatrix(A,k+1,n,k,k));
-			table.insert(w[1],1,A[k][k]+s);
+			w = transposition(submatrix(A, k + 1, n, k, k));
+			table.insert(w[1], 1, A[k][k] + s);
 			for i = 1, k-1 do
-				table.insert(w[1],1,0);
+				table.insert(w[1], 1, 0);
 				R[i][k] = A[i][k]
 			end
 		end
 		if norm(w) ~= 0 then
-			w = ArrayMult(w,1/norm(w));
+			w = ArrayMult(w, 1 / norm(w));
 		end
-		P = ArrayAddArray(E, ArrayMult(MatrixMultiple(transposition(w),w), -2));
+		P = ArrayAddArray(E, ArrayMult(MatrixMultiple(transposition(w), w), -2));
 		A = MatrixMultiple(P, A);
 		P1 = MatrixMultiple(P, P1);
 		for j = 1, n do
@@ -139,7 +140,7 @@ function SVD.QRDecompositionHouse( A )
 end
 local QRDecompositionHouse = SVD.QRDecompositionHouse;
 
-function SVD.DO_SVD( A )
+function SVD.DO_SVD(A)
 	local loopmax = math.max(#A, #A[1]);
 	local loopcount = 0;
 	local U = eye(#A);
