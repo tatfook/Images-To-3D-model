@@ -84,9 +84,10 @@ end
 local QRDecompositionSch = SVD.QRDecompositionSch;
 
 --@para: QR decomposition algorithm by Householder method
-function SVD.QRDecompositionHouse(A)
+function SVD.QRDecompositionHouse(A, input)
 	local row = #A;
 	local col = #A[1];
+	local m, n;
 	if row > col then
 		for i = 1, row do
 			for j = col + 1, row do
@@ -104,9 +105,12 @@ function SVD.QRDecompositionHouse(A)
 		end
 		m = #A;
 		n = #A[1];
+	else
+		m = row;
+		n = col;
 	end
 	local E = eye(n);
-	local R = zeros(n, n);
+	local R = input or zeros(n, n);
 	local P1 = eye(n);
 	local s, w, P;
 	for k = 1, n-1 do 
@@ -147,10 +151,14 @@ function SVD.DO_SVD(A)
 	local S = transposition(A);
 	local V = eye(#A[1]);
 	local Q, e, E, F;
+	local input_QR = zeros(loopmax, loopmax);
+	local input_U = zeros(#U, loopmax);
+	local input_S = zeros(1, loopmax);
+	local input_V = zeros(#V, loopmax);
 	while loopcount < loopmax do
-		Q, S = QRDecompositionHouse(transposition(S));
+		Q, S = QRDecompositionHouse(transposition(S), input_QR);
 		U = MatrixMultiple(U, Q);
-		Q, S = QRDecompositionHouse(transposition(S));
+		Q, S = QRDecompositionHouse(transposition(S), input_QR);
 		V = MatrixMultiple(V, Q);
 		e = triu(A);
 		E = math.sqrt(ArraySum(DotProduct(e, e)));

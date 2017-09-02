@@ -73,8 +73,8 @@ local match = SIFT.match;
 --local Im1_filename = "Mod/ImagesTo3Dmodel/demo-data/1.JPG";
 --local Im2_filename = "Mod/ImagesTo3Dmodel/demo-data/2.JPG";
 
-local Im1_filename = "Mod/ImagesTo3Dmodel/demo-data/church3/1.JPG";
-local Im2_filename = "Mod/ImagesTo3Dmodel/demo-data/church3/2.JPG";
+local Im1_filename = "Mod/ImagesTo3Dmodel/demo-data/fountain/1.jpg";
+local Im2_filename = "Mod/ImagesTo3Dmodel/demo-data/fountain/2.jpg";
 
 local TXT1_filename = "Mod/ImagesTo3Dmodel/1.txt";
 local TXT2_filename = "Mod/ImagesTo3Dmodel/2.txt";
@@ -87,18 +87,18 @@ local I1 = rgb2gray(Im1);
 local I2 = rgb2gray(Im2);
 
 
-LOG.std(nil, "debug", "SIFT", "Imresizing...")
+--LOG.std(nil, "debug", "SIFT", "Imresizing...")
 local I_O1 = imresize(I1, 500 / math.min(#I1, #I1[1]));
 local I_O2 = imresize(I2, 500 / math.min(#I2, #I2[1]));
 
-CreatTXT(I_O1, TXT1_filename);
-CreatTXT(I_O2, TXT2_filename);
+--CreatTXT(I_O1, TXT1_filename);
+--CreatTXT(I_O2, TXT2_filename);
 
 
 local frames1, descr1, gss1, dogss1 = DO_SIFT(I_O1);
 local frames2, descr2, gss2, dogss2 = DO_SIFT(I_O2);
 
-LOG.std(nil, "debug", "SIFT", "Computing matches...")
+--LOG.std(nil, "debug", "SIFT", "Computing matches...")
 
 
 --CreatTXT(frames1, TXT1_filename);
@@ -108,14 +108,11 @@ descr2 = transposition(descr2);
 
 frames1 = transposition(frames1);
 frames2 = transposition(frames2);
-print("111111111111111111111111111111111")
-print(#frames1, #frames1[1], #descr1, #descr1[1])
-print(#frames2, #frames2[1], #descr2, #descr2[1])
 
-local final_matches, matches, num, loc1, loc2, loc1_new, loc2_new = match(I_O1, descr1, frames1, I_O2, descr2, frames2, 0.9);
+local final_matches, matches, num, loc1, loc2, loc1_new, loc2_new = match(I_O1, descr1, frames1, I_O2, descr2, frames2, 0.75);
 LOG.std(nil, "debug", "SIFT", "Matched points:# %f", final_matches);
-LOG.std(nil, "debug", "SIFT", "Matched points:# %f", matches);
-LOG.std(nil, "debug", "SIFT", "Matched points:# %f", num);
+--LOG.std(nil, "debug", "SIFT", "Matched points:# %f", matches);
+--LOG.std(nil, "debug", "SIFT", "Matched points:# %f", num);
 
 
 
@@ -125,7 +122,7 @@ local loc3_filename = "Mod/ImagesTo3Dmodel/5.txt";
 local loc4_filename = "Mod/ImagesTo3Dmodel/6.txt";
 
 
-CreatTXT(loc1, loc1_filename);
-CreatTXT(loc2, loc2_filename);
-CreatTXT(loc1_new, loc3_filename);
-CreatTXT(loc2_new, loc4_filename);
+--CreatTXT(loc1, loc1_filename);
+--CreatTXT(loc2, loc2_filename);
+--CreatTXT(loc1_new, loc3_filename);
+--CreatTXT(loc2_new, loc4_filename);

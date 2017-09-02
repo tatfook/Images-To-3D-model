@@ -85,59 +85,54 @@ local cos = math.cos;
 -----------------------------------------------------
 -- Resize the image to its half
 function SIFT.HalfSize(array)
-	local h = #array;
-	local w = #array[1];
-	local self = zeros(ceil(h / 2), ceil(w / 2));
-	for i = 1, h, 2 do
-		for j = 1, w, 2 do
-			self[(i + 1) / 2][(j + 1) / 2] = array[i][j];
-		end
-	end
+--	local h = #array;
+--	local w = #array[1];
+--	local self = zeros(ceil(h / 2), ceil(w / 2));
+--	for i = 1, h, 2 do
+--		for j = 1, w, 2 do
+--			self[(i + 1) / 2][(j + 1) / 2] = array[i][j];
+--		end
+--	end
+	local self = imresize(array, 0.5);
 	return self;
 end
 local HalfSize = SIFT.HalfSize;
--- a = {{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5},{1,2,3,4,5}};
--- b = HalfSize(a);
--- ArrayShow(b)
 
 -- Resize the image to its double 
 function SIFT.DoubleSize(array)
-	local h = #array;
-	local w = #array[1];
-	local self = zeros(2 * h, 2 * w);
-	for i = 1, h do
-		for j = 1, w do
-			self[2 * i-1][2 * j-1] = array[i][j]
-		end
-	end
-	for i = 1, h-1 do
-		for j = 1, w-1 do
-			self[2 * i][2 * j] = 0.25 *(array[i][j] + 
-			array[i][j + 1] + array[i + 1][j] + array[i + 1][j + 1]);
-			self[2 * i-1][2 * j] = 0.5 *(array[i][j] + array[i][j + 1]);
-			self[2 * i][2 * j-1] = 0.5 *(array[i][j] + array[i + 1][j]);
-		end
-	end
-	for i = 1, 2 * h-1 do
-		if fmod(i, 2)==0 then
-			self[i][2 * w-1] = 0.5 *(self[i-1][2 * w-1] + self[i + 1][2 * w-1]);
-		end
-		self[i][2 * w] = self[i][2 * w-1];
-	end
-	for i = 1, 2 * w-1 do
-		if fmod(i, 2)==0 then
-			self[2 * h-1][i] = 0.5 *(self[2 * h-1][i-1] + self[2 * h-1][i + 1]);
-		end
-		self[2 * h][i] = self[2 * h-1][i];
-	end
-	self[2 * h][2 * w] = self[2 * h-1][2 * w-1];
+--	local h = #array;
+--	local w = #array[1];
+--	local self = zeros(2 * h, 2 * w);
+--	for i = 1, h do
+--		for j = 1, w do
+--			self[2 * i-1][2 * j-1] = array[i][j]
+--		end
+--	end
+--	for i = 1, h-1 do
+--		for j = 1, w-1 do
+--			self[2 * i][2 * j] = 0.25 *(array[i][j] + 
+--			array[i][j + 1] + array[i + 1][j] + array[i + 1][j + 1]);
+--			self[2 * i-1][2 * j] = 0.5 *(array[i][j] + array[i][j + 1]);
+--			self[2 * i][2 * j-1] = 0.5 *(array[i][j] + array[i + 1][j]);
+--		end
+--	end
+--	for i = 1, 2 * h-1 do
+--		if fmod(i, 2)==0 then
+--			self[i][2 * w-1] = 0.5 *(self[i-1][2 * w-1] + self[i + 1][2 * w-1]);
+--		end
+--		self[i][2 * w] = self[i][2 * w-1];
+--	end
+--	for i = 1, 2 * w-1 do
+--		if fmod(i, 2)==0 then
+--			self[2 * h-1][i] = 0.5 *(self[2 * h-1][i-1] + self[2 * h-1][i + 1]);
+--		end
+--		self[2 * h][i] = self[2 * h-1][i];
+--	end
+--	self[2 * h][2 * w] = self[2 * h-1][2 * w-1];
+	local self = imresize(array, 2)
 	return self
 end
 local DoubleSize = SIFT.DoubleSize;
--- a = {{1,2,3,4,5},{5,4,6,2,1},{1,2,3,4,5},{5,4,3,2,1}};
--- b=DoubleSize(a);
--- ArrayShow(a)
--- ArrayShow(b)
 
 function SIFT.gaussian(I, O, S, omin, smin, smax)
 	if omin<0 then
@@ -342,7 +337,6 @@ function SIFT.extrafine(oframes, octave, smin, thresh, r)
 			A = {{Dxx, Dxy, Dxs}, {Dxy, Dyy, Dys}, {Dxs, Dys, Dss}};
 			b = {{-Dx, -Dy, -Ds}};
 			c = MatrixMultiple(b, inv(A, outputInvA), outputInvc);
-			--c = MatrixMultiple(b, inv(A));
 
 			-- If the translation of the keypoint is big, 
 			-- move the keypoint and re-interrate the computation.
@@ -384,7 +378,6 @@ function SIFT.extrafine(oframes, octave, smin, thresh, r)
 		xn = x + c[1][2];
 		yn = y + c[1][1];
 		sn = s + c[1][3];
-		--print(abs(val) > thresh , score < (r + 1) * (r + 1) / r ,score >= 0 , abs(c[1][1]) < 1.5 , abs(c[1][2]) < 1.5 ,abs(c[1][3]) < 1.5 , xn >= 0 , xn < M-1 , yn >=0 ,yn <= N-1 , sn >= 0 , sn <= S-1)
 		if(abs(val) > thresh and score <(r + 1) *(r + 1) / r and
 		score >= 0 and abs(c[1][1]) < 1.5 and abs(c[1][2]) < 1.5 and
 		abs(c[1][3]) < 1.5 and xn >= 0 and xn < M-1 and yn >=0 and
@@ -433,7 +426,7 @@ function SIFT.orientation(oframes, octave, S, smin, sigma0)
 			end
 		end
 	end
-	LOG.std(nil, "debug", "SIFT", "orientation Stop point 1");
+	--LOG.std(nil, "debug", "SIFT", "orientation Stop point 1");
 
 	local x = oframes[1];
 	local y = oframes[2];
@@ -616,15 +609,15 @@ function SIFT.DO_SIFT(I, O, S)
 	local magnif = 3;
 	local frames = {{}, {}, {}, {}};
 	local descriptors = {};
-	LOG.std(nil, "debug", "SIFT", "---------- Extract SIFT features from an image ----------");
-	LOG.std(nil, "debug", "SIFT", "SIFT: constructing scale space with Scale Space ..."); 
+	--LOG.std(nil, "debug", "SIFT", "---------- Extract SIFT features from an image ----------");
+	--LOG.std(nil, "debug", "SIFT", "SIFT: constructing scale space with Scale Space ..."); 
 	local scalespace = gaussian(I, O, S, omin, -1, S + 1);
-	LOG.std(nil, "debug", "SIFT", "SIFT: constructing scale space with DoG ..."); 
+	--LOG.std(nil, "debug", "SIFT", "SIFT: constructing scale space with DoG ..."); 
 	local difofg = diffofg(scalespace);
 	for o = 1, scalespace.O do
-		LOG.std(nil, "debug", "SIFT", "SIFT: computing octave: %f", o-1 + omin);
+		--LOG.std(nil, "debug", "SIFT", "SIFT: computing octave: %f", o-1 + omin);
 		local oframesPrime = localmax(difofg.octave[o], 0.8 * thresh, difofg.smin);
-		LOG.std(nil, "debug", "SIFT", "SIFT: initial keypoints: %f", #oframesPrime[1]);
+		--LOG.std(nil, "debug", "SIFT", "SIFT: initial keypoints: %f", #oframesPrime[1]);
 
 
 		-- Remove pointd too close to the boundary
@@ -640,12 +633,6 @@ function SIFT.DO_SIFT(I, O, S)
 		local oframesCount = 0;
 		
 		for i = 1, oframesLength do
---			print("111111111111111111111111111")
---			print(red[i], #scalespace.octave[o][1][1], #scalespace.octave[o][1], #scalespace.octave[o])
---			print((oframesPrime[1][i]-red[i]>=1),
---			(oframesPrime[1][i] + red[i]<=(#scalespace.octave[o][1][1])),
---			(oframesPrime[2][i]-red[i]>=1) ,
---			(oframesPrime[2][i] + red[i]<=(#scalespace.octave[o][1])))
 			if((oframesPrime[1][i]-red[i]>=1) and
 			(oframesPrime[1][i] + red[i]<=(#scalespace.octave[o][1])) and
 			(oframesPrime[2][i]-red[i]>=1) and
@@ -656,11 +643,11 @@ function SIFT.DO_SIFT(I, O, S)
 				oframes[3][oframesCount] = oframesPrime[3][i];
 			end
 		end
-		LOG.std(nil, "debug", "SIFT", "SIFT: keypoints # %f after discarding from boundary", oframesCount);
+		--LOG.std(nil, "debug", "SIFT", "SIFT: keypoints # %f after discarding from boundary", oframesCount);
 		-- Refine the location, threshold strength and remove points on edges
 		local oframesExtrafined = extrafine(oframes, difofg.octave[o], difofg.smin, thresh, r);
-		LOG.std(nil, "debug", "SIFT", "SIFT: keypoints # %f  after discarding from low constrast and edges", #oframesExtrafined[1]);
-		LOG.std(nil, "debug", "SIFT", "SIFT: compute orientations of keypoints");
+		--LOG.std(nil, "debug", "SIFT", "SIFT: keypoints # %f  after discarding from low constrast and edges", #oframesExtrafined[1]);
+		--LOG.std(nil, "debug", "SIFT", "SIFT: compute orientations of keypoints");
 		-- Computer the orientations
 		local oframesOrientation = orientation(oframesExtrafined, scalespace.octave[o], scalespace.S, scalespace.smin, scalespace.sigma0);
 		-- Store frames
@@ -676,9 +663,9 @@ function SIFT.DO_SIFT(I, O, S)
 			frames[3][i] = 2^(o-1 + scalespace.omin) * scalespace.sigma0 * 2^(oframesOrientation[3][i] / scalespace.S);
 			frames[4][i] = oframesOrientation[4][i];]]
 		end
-		LOG.std(nil, "debug", "SIFT", "SIFT: keypoints # %f after orientation computation", #oframesOrientation[1]);
+		--LOG.std(nil, "debug", "SIFT", "SIFT: keypoints # %f after orientation computation", #oframesOrientation[1]);
 		-- Descriptors
-		LOG.std(nil, "debug", "SIFT", "SIFT: computer descriptors...");
+		--LOG.std(nil, "debug", "SIFT", "SIFT: computer descriptors...");
 		local sh = descriptor(scalespace.octave[o], oframesOrientation, scalespace.sigma0, scalespace.S, scalespace. smin, magnif, NBP, NBO);
 		if o == 1 then 
 			descriptors = sh;
@@ -686,7 +673,7 @@ function SIFT.DO_SIFT(I, O, S)
 			descriptors = connect(descriptors, sh);
 		end
 	end
-	LOG.std(nil, "debug", "SIFT", "SIFT: total keypoints: %f", #descriptors[1]);
+	--LOG.std(nil, "debug", "SIFT", "SIFT: total keypoints: %f", #descriptors[1]);
 	return frames, descriptors, scalespace, difofg;
 end
 local DO_SIFT = SIFT.DO_SIFT;
@@ -717,7 +704,6 @@ function SIFT.match(im1, des1, loc1, im2, des2, loc2, distRatio)
 		end
 		table.sort(SortDotprods);
 		FirstIndex = 1;	
-		--if(SortDotprods[1] <  distRatio * SortDotprods[2] and SortDotprods[1] >  0.75 * SortDotprods[2]) then
 		if(SortDotprods[1] <= distRatio * SortDotprods[2] ) then
 			while(SortDotprods[1] ~= SortDotprods0[FirstIndex]) do
 				FirstIndex = FirstIndex + 1;
@@ -728,7 +714,6 @@ function SIFT.match(im1, des1, loc1, im2, des2, loc2, distRatio)
 			match[i] = 0;
 		end
 	end
-	LOG.std(nil, "debug", "SIFT", "Matching Stop Point")
 	local dis_threshold = 0.3;
 	local orien_threshold = 0.3;
 	local num = 0;
@@ -738,7 +723,7 @@ function SIFT.match(im1, des1, loc1, im2, des2, loc2, distRatio)
 		end
 	end
 	if num == 0 then
-		LOG.std(nil, "debug", "SIFT", "No matched Point");
+		--LOG.std(nil, "debug", "SIFT", "No matched Point");
 	else
 		local final_match = zeros(1, #match);
 		local dis_img1 = zeros(num, num);

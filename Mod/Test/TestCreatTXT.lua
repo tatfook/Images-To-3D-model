@@ -19,9 +19,9 @@ local Im = imP.imread(ImageFilename);
 local I = imP.rgb2gray(Im);
 
 local I_O = imP.tensor.imresize(I, 0.5);
-LOG.std(nil, "debug", "TestCreatTXT", "-------Start 1----------");
+--LOG.std(nil, "debug", "TestCreatTXT", "-------Start 1----------");
 imP.CreatTXT(I_O, TxtFilename1);
-LOG.std(nil, "debug", "TestCreatTXT", "-------Start 2----------");
+--LOG.std(nil, "debug", "TestCreatTXT", "-------Start 2----------");
 imP.CreatTXT(I_O, TxtFilename2);
-LOG.std(nil, "debug", "TestCreatTXT", "-------Start 3----------");
+--LOG.std(nil, "debug", "TestCreatTXT", "-------Start 3----------");
 imP.CreatTXT(I_O, TxtFilename3);

@@ -31,7 +31,7 @@ function ImagesTo3Dmodel:GetDesc()
 end
 
 function ImagesTo3Dmodel:init()
---	LOG.std(nil, "info", "ImagesTo3Dmodel", "plugin initialized");
+--	----LOG.std(nil, "info", "ImagesTo3Dmodel", "plugin initialized");
 --	local p=10;
 --	TestAbc.Test(p);
 end

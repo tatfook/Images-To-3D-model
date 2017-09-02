@@ -210,7 +210,7 @@ function imP.tensor.DotProduct(array1, array2, output)
 		end
 		return output;
 	else
-		LOG.std(nil, "warn", "imP", "unexpected array type");
+		LOG.std(nil, "warn", "imP", "imP.tensor.DotProduct: unexpected array type");
 	end
 end
 local DotProduct = imP.tensor.DotProduct;
@@ -230,7 +230,7 @@ function imP.tensor.ArraySum(array)
 			end
 		end
 	else
-		LOG.std(nil, "warn", "imP", "unexpected array type");
+		LOG.std(nil, "warn", "imP", "imP.tensor.ArraySum: unexpected array type");
 	end
 	return sum;
 end
@@ -331,7 +331,7 @@ function imP.tensor.ArrayAddArray(array1, array2, output)
 			return output;
 		end
 	else
-		LOG.std(nil, "warn", "imP", "unexpected array type");
+		LOG.std(nil, "warn", "imP", "imP.tensor.ArrayAddArray: unexpected array type");
 
 	end
 end
@@ -417,7 +417,7 @@ function imP.GetGaussian(sig)
 			g[i][j] = (1 / sig^2) * math.exp(-((i-w)^2+(j - w)^2) / 2 / sig^2);
 		end
 	end
-	sum = ArraySum(g)
+	local sum = ArraySum(g)
 	g = ArrayMult(g, 1 / sum);
 	return g;
 end
@@ -950,13 +950,6 @@ end
 local mod = imP.tensor.mod;
 
 --get gradient gx and gy of matrix m
---e.g.
--- local D = {}
--- D[1] = {1,1,0,0,1};
--- D[2] = {2,1,2,2,0};
--- D[3] = {2,1,1,0,1};
--- local gx,gy = imP.tensor.gradient(D)
---gx and gy are matrixes 
 function imP.tensor.gradient(m)
 	local rows = #m;
 	local cols = #m[1];
@@ -995,6 +988,7 @@ function imP.tensor.Spline(w, a)
 end
 local Spline = imP.tensor.Spline;
 
+--@Para: resize an image by bicubic method
 function imP.tensor.imresize(Image, outputsize)
 	local rows = #Image;
 	local cols = #Image[1];
@@ -1083,7 +1077,7 @@ function imP.tensor.mean(array)
 			self[i] = ArraySum({array[i]}) / #array[i];
 		end
 	else 
-		LOG.std(nil, "warn", "imP", "unexpected array table")
+		LOG.std(nil, "warn", "imP", "imP.tensor.mean: unexpected array type")
 	end
 	return self;
 end
@@ -1103,7 +1097,7 @@ function imP.tensor.diag(array)
 		end
 		return self;
 	else
-		LOG.std(nil, "warn", "imP", "unexpected array type");
+		LOG.std(nil, "warn", "imP", "imP.tensor.diag: unexpected array type");
 	end
 end
 local diag = imP.tensor.diag;
