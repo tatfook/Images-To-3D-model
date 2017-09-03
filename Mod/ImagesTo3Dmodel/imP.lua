@@ -156,7 +156,7 @@ function imP.rgb2gray(array)
 		local self = zeros(row, column);
 		for i = 1, row do
 			for j = 1, column do
-				self[i][j] =(299 * array[1][i][j] + 587 * array[2][i][j] + 114 * array[3][i][j]) / 1000;
+				self[i][j] =(114 * array[1][i][j] + 587 * array[2][i][j] + 299 * array[3][i][j]) / 1000;
 				self[i][j] = math.floor(self[i][j] + 0.5);
 			end
 		end

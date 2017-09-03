@@ -723,7 +723,7 @@ function SIFT.match(im1, des1, loc1, im2, des2, loc2, distRatio)
 		end
 	end
 	if num == 0 then
-		--LOG.std(nil, "debug", "SIFT", "No matched Point");
+		LOG.std(nil, "debug", "SIFT", "No matched Point");
 	else
 		local final_match = zeros(1, #match);
 		local dis_img1 = zeros(num, num);
@@ -800,7 +800,7 @@ function SIFT.match(im1, des1, loc1, im2, des2, loc2, distRatio)
 		loc_new = DotProduct(loc_new, loc_new);
 		local threshold_x = ArraySum(loc_new[1])/(#locations1[1]);
 		local threshold_y = ArraySum(loc_new[2])/(#locations1[1]);
-		local thre_Rio = 1;
+		local thre_Rio = 5;
 		local locations1_new = {{},{}};
 		local locations2_new = {{},{}};
 		for i = 1, #locations1[1] do

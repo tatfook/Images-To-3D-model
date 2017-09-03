@@ -14,9 +14,6 @@ NPL.load("(gl)Mod/Test/TestSIFTmatching.lua",true);
 NPL.load("(gl)Mod/ImagesTo3Dmodel/imP.lua", true);
 NPL.load("(gl)Mod/ImagesTo3Dmodel/SIFT.lua", true);
 
---[[local imP = commonlib.gettable("Mod.ImagesTo3Dmodel.imP");
-local tensor = commonlib.inherit(nil, commonlib.gettable("Mod.ImagesTo3Dmodel.imP.tensor"));
-]]
 local zeros = imP.tensor.zeros;
 local zeros3 = imP.tensor.zeros3;
 local Round = imP.Round;

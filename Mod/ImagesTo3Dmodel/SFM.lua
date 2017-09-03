@@ -128,23 +128,21 @@ function SFM.NormalizePoints( p, numDims )
 			points[i][j] = points[i][j] - cent[i];
 		end
 	end
-	local points = DotProduct(points, points);
-	local SumPoints = points[1];
+	local translatedpoints = DotProduct(points, points);
+	local SumPoints = translatedpoints[1];
 	for i = 2, numDims do
-		SumPoints = ArrayAddArray(SumPoints, points[i], SumPoints);
+		SumPoints = ArrayAddArray(SumPoints, translatedpoints[i], SumPoints);
 	end
 	for i = 1, pointsLength do
 		SumPoints[i] = math.sqrt(SumPoints[i]);
 	end
 	local meanDistanceFromCenter = mean(SumPoints);
-
 	local scale;
 	if meanDistanceFromCenter > 0 then
 		scale = math.sqrt(numDims)/meanDistanceFromCenter;
 	else
 		scale = 1;
 	end
-
 	local Tn = {};
 	for i = 1, numDims + 1 do
 		Tn[i] = scale;
@@ -154,7 +152,6 @@ function SFM.NormalizePoints( p, numDims )
 		T[i][numDims + 1] = -scale * cent[i];
 	end
 	T[numDims + 1][numDims + 1] = 1;
-
 	local normPoints;
 	if #p > numDims then
 		normPoints = MatrixMultiple(T, p);
@@ -168,7 +165,7 @@ local NormalizePoints = SFM.NormalizePoints;
 function SFM.EightPoint( points1homo, points2homo, output )
 	local num = #points1homo[1];
 	local points1homo, t1 = NormalizePoints(points1homo, 2);
-	local points2homo, t2 = NormalizePoints(points2homo, 2);	
+	local points2homo, t2 = NormalizePoints(points2homo, 2);
 	local m = output or zeros(9, num);
 	m[1] = DotProduct(points1homo[1], points2homo[1]);
 	m[2] = DotProduct(points2homo[2], points2homo[1]);
@@ -182,7 +179,7 @@ function SFM.EightPoint( points1homo, points2homo, output )
 		m[9][i] = 1;
 	end
 	m = transposition(m);	
-	local um, sm, vm = DO_SVD(m);	
+	local um, sm, vm = DO_SVD(m);
 	local f = zeros(3, 3);
 	for i = 1, 3 do
 		for j = 1, 3 do
@@ -217,7 +214,7 @@ function SFM.MSAC(points1, points2)
 	end
 
 	local threshold = 0.01;
-	local maxtrails = 200;
+	local maxtrails = 1;
 	math.randomseed(os.time())
 	local sampleIndicies, f, pfp, inliers, nInliers, bestDist;
 	local bestInliers;
@@ -239,9 +236,8 @@ function SFM.MSAC(points1, points2)
 			EightPoint2[3][i] = points2homo[3][sampleIndicies[1][i]];
 		end 
 		f = EightPoint(EightPoint1, EightPoint2, EightPoint_output);
-
 		--reprojection error
-		pfp = MatrixMultiple(transposition(f), points2homo);
+		pfp = transposition(MatrixMultiple(transposition(points2homo), f));
 		pfp = DotProduct(pfp, points1homo);
 		d = pfp[1];
 		for j = 2, 3 do
@@ -276,7 +272,9 @@ function SFM.MSAC(points1, points2)
 	local EightPoint4 = zeros(3, #bestInliers[1])
 	local EightPoint3 = {{}, {}, {}};
 	local EightPoint4 = {{}, {}, {}};
-	for i = 1, #bestInliers[1] do
+	local count = 0
+	local i = 1; 
+	while count < 10 do
 		if bestInliers[1][i] == 1 then
 			table.insert(EightPoint3[1], points1homo[1][i]);
 			table.insert(EightPoint3[2], points1homo[2][i]);
@@ -284,7 +282,9 @@ function SFM.MSAC(points1, points2)
 			table.insert(EightPoint4[1], points2homo[1][i]);
 			table.insert(EightPoint4[2], points2homo[2][i]);
 			table.insert(EightPoint4[3], points2homo[3][i]);
+			count = count + 1;
 		end
+		i = i + 1;
 	end 
 	LOG.std(nil, "debug", "SFM", "MSAC: MSAC Stop Point 1");	
 	f = EightPoint(EightPoint3, EightPoint4, zeros(9, #EightPoint3[1]));
@@ -400,20 +400,16 @@ function SFM.mytriangualation( matchedPoints1, matchedPoints2, cam1, cam2 )
 end
 local mytriangualation = SFM.mytriangualation;
 
-function SFM.DO_SFM( I1, I2 )
+function SFM.DO_SFM( I1, I2, size )
 	
 
-	local col = {{645.070482, 0.000000, 353.968508}, 
-				{0.000000, 639.683979, 234.946850},
+	local col = {{1663.782234, 0.000000, 785.889057}, 
+				{0.000000, 1663.367425, 638.790025},
 				{0.000000, 0.000000, 1.000000}};
-	local ds = #I1;
-	local ms = #I1;
 	LOG.std(nil, "debug", "SFM", "---------- Strat SFM ----------");
 
-	if ms > ds then
-		I1 = imresize(I1, ds/ms);
-		I2 = imresize(I2, ds/ms);
-		col = ArrayMult(col, ds/ms);
+	if size ~= nil then
+		col = ArrayMult(col, size);
 	end
 	local intrinsic = transposition(col);
 	--Match features
@@ -426,7 +422,6 @@ function SFM.DO_SFM( I1, I2 )
 	
 	LOG.std(nil, "debug", "SFM", "SFM: Start MSAC...");	
 	local F, inliersIdx = MSAC(mp1, mp2);
-	LOG.std(nil, "debug", "SFM", "SFM: Estimate Stop Point 1");	
 
 	local num = ArraySum(inliersIdx);
 	local inlierPoints1 = zeros(num, 2);
@@ -444,13 +439,11 @@ function SFM.DO_SFM( I1, I2 )
 
 	LOG.std(nil, "debug", "SFM", "SFM: Start Motion From F...");	
 	local R, t = MotionFromF(F, intrinsic, inlierPoints1, inlierPoints2);
-	LOG.std(nil, "debug", "SFM", "SFM: Estimate Stop Point 2");	
 	local camMat0 = MatrixMultiple(connect(eye(3), {{0, 0, 0}}, 1), intrinsic);
 	local camMatl = MatrixMultiple(connect(R, MatrixMultiple(ArrayMult(t, -1), R), 1), intrinsic);
-
 	--dense match
-	local mp11, mp22 = MatchFeaturePoints(I1, I2, 0.9);
-	local points3D = mytriangualation(mp11, mp22, camMat0, camMatl);
+	--local mp11, mp22 = MatchFeaturePoints(I1, I2, 0.9);
+	local points3D = mytriangualation(mp1, mp2, camMat0, camMatl);
 	
-	return points3D, mp11, mp22;
+	return points3D, mp1, mp2;
 end
