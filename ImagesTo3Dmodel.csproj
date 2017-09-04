@@ -55,6 +55,7 @@
     <None Include="Mod\Test\TestSFM.lua" />
     <None Include="Mod\Test\TestSIFT.lua" />
     <None Include="Mod\Test\TestSIFTmatching.lua" />
+    <None Include="Mod\Test\TestSVD.lua" />
     <None Include="README.md" />
     <None Include="Run.bat" />
   </ItemGroup>
